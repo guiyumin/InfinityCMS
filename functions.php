@@ -28,8 +28,8 @@ function db() {
 /**
  * Render view template
  */
-function view($template, $data = []) {
-    return app('view')->render($template, $data);
+function view($template, $data = [], $layout = null) {
+    return app('view')->render($template, $data, $layout);
 }
 
 /**

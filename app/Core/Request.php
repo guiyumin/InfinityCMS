@@ -136,6 +136,36 @@ class Request {
     }
 
     /**
+     * Get GET parameter
+     * 获取 GET 参数
+     *
+     * @param string|null $key
+     * @param mixed $default
+     * @return mixed
+     */
+    public function get($key = null, $default = null) {
+        if ($key === null) {
+            return $_GET;
+        }
+        return $_GET[$key] ?? $default;
+    }
+
+    /**
+     * Get POST parameter
+     * 获取 POST 参数
+     *
+     * @param string|null $key
+     * @param mixed $default
+     * @return mixed
+     */
+    public function post($key = null, $default = null) {
+        if ($key === null) {
+            return $_POST;
+        }
+        return $_POST[$key] ?? $default;
+    }
+
+    /**
      * Check if request is GET
      * 检查是否为 GET 请求
      *
