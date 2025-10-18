@@ -44,10 +44,10 @@ $router->get('/api/posts/latest', function() {
 });
 
 // ==========================================
-// Admin Routes (with auth middleware)
+// Admin Routes (with admin middleware)
 // ==========================================
 
-$router->group(['prefix' => '/admin', 'middleware' => 'auth'], function($router) {
+$router->group(['prefix' => '/admin', 'middleware' => 'admin'], function($router) {
 
     // Dashboard
     $router->get('/dashboard', 'Admin\DashboardController@index');

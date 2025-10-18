@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Core\Migration;
+use App\Http\Middlewares\AdminMiddleware;
 
 /**
  * Migration Controller
@@ -33,6 +34,9 @@ class MigrationController {
         $migration = new Migration();
         $results = $migration->run();
 
+        // Clear migrations cache to reflect changes
+        AdminMiddleware::clearMigrationsCache();
+
         if (is_htmx()) {
             // Return HTMX response
             $html = '<div class="alert alert-success">';
@@ -58,6 +62,9 @@ class MigrationController {
         $migration = new Migration();
         $results = $migration->rollback();
 
+        // Clear migrations cache to reflect changes
+        AdminMiddleware::clearMigrationsCache();
+
         if (is_htmx()) {
             $html = '<div class="alert alert-warning">';
             foreach ($results as $result) {
@@ -81,6 +88,9 @@ class MigrationController {
     public function reset() {
         $migration = new Migration();
         $results = $migration->reset();
+
+        // Clear migrations cache to reflect changes
+        AdminMiddleware::clearMigrationsCache();
 
         if (is_htmx()) {
             $html = '<div class="alert alert-danger">';

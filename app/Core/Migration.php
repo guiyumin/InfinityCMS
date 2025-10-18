@@ -171,6 +171,16 @@ class Migration {
     }
 
     /**
+     * Check if there are pending migrations
+     * 检查是否有待执行的迁移
+     *
+     * @return bool
+     */
+    public function hasPendingMigrations() {
+        return !empty($this->getPendingMigrations());
+    }
+
+    /**
      * Get migration status
      * 获取迁移状态
      *
