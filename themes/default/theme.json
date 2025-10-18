@@ -1,0 +1,12 @@
+{
+  "name": "Default Theme",
+  "version": "1.0.0",
+  "author": "Infinity CMS",
+  "description": "The default theme for Infinity CMS with HTMX and Alpine.js support",
+  "screenshot": "screenshot.png",
+  "templates": {
+    "home": "pages/home.php",
+    "post": "pages/post.php",
+    "page": "pages/page.php"
+  }
+}
