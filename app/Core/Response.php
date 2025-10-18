@@ -115,7 +115,23 @@ class Response {
      */
     public function notFound($message = 'Page Not Found') {
         $this->setStatusCode(404);
-        $this->setContent($message);
+
+        // Try to render error template
+        try {
+            if (app('view')->exists('errors.404')) {
+                $content = app('view')->render('errors.404', [
+                    'title' => '404 Not Found',
+                    'message' => $message,
+                ], null); // No layout
+                $this->setContent($content);
+            } else {
+                $this->setContent($message);
+            }
+        } catch (\Exception $e) {
+            // Fallback to plain text if template fails
+            $this->setContent($message);
+        }
+
         $this->send();
     }
 
@@ -137,11 +153,29 @@ class Response {
      * 发送 500 响应
      *
      * @param string $message
+     * @param string $details Additional error details (shown in debug mode)
      * @return void
      */
-    public function error($message = 'Internal Server Error') {
+    public function error($message = 'Internal Server Error', $details = '') {
         $this->setStatusCode(500);
-        $this->setContent($message);
+
+        // Try to render error template
+        try {
+            if (app('view')->exists('errors.500')) {
+                $content = app('view')->render('errors.500', [
+                    'title' => '500 Internal Server Error',
+                    'message' => $message,
+                    'error_details' => $details,
+                ], null); // No layout
+                $this->setContent($content);
+            } else {
+                $this->setContent($message);
+            }
+        } catch (\Exception $e) {
+            // Fallback to plain text if template fails
+            $this->setContent($message . ($details ? "\n\n" . $details : ''));
+        }
+
         $this->send();
     }
 

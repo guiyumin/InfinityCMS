@@ -28,6 +28,47 @@ if ($env['app']['debug']) {
     ini_set('display_errors', '0');
 }
 
+// 4.5 设置全局异常处理器
+set_exception_handler(function($exception) use ($env) {
+    // Log the error
+    error_log($exception->getMessage() . ' in ' . $exception->getFile() . ':' . $exception->getLine());
+
+    // Get details
+    $message = $exception->getMessage();
+    $details = sprintf(
+        "Error: %s\nFile: %s\nLine: %d\nTrace:\n%s",
+        $message,
+        $exception->getFile(),
+        $exception->getLine(),
+        $exception->getTraceAsString()
+    );
+
+    // Try to use Response class if available
+    try {
+        if (class_exists('App\Core\App')) {
+            $app = App\Core\App::getInstance();
+            if ($app->has('response')) {
+                $response = $app->get('response');
+                $response->error('Internal Server Error', $details);
+                return;
+            }
+        }
+    } catch (\Exception $e) {
+        // Response not available, fallback below
+    }
+
+    // Fallback error display
+    http_response_code(500);
+    if ($env['app']['debug']) {
+        echo "<h1>Internal Server Error</h1>";
+        echo "<pre>" . htmlspecialchars($details) . "</pre>";
+    } else {
+        echo "<h1>Internal Server Error</h1>";
+        echo "<p>Something went wrong. Please try again later.</p>";
+    }
+    exit;
+});
+
 // 5. 设置时区
 date_default_timezone_set($env['app']['timezone'] ?? 'UTC');
 
