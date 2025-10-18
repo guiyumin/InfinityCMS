@@ -57,7 +57,7 @@ cms/
 │  │  └─ Middlewares/    # HTTP middlewares
 │  └─ Models/            # Data models
 ├─ themes/
-│  └─ default/           # Default theme
+│  └─ infinity/          # Infinity theme
 ├─ plugins/
 │  ├─ hello-world/       # Example plugin
 │  └─ sitemap/           # Sitemap generator plugin
@@ -159,7 +159,7 @@ my-theme/
 3. Update `.env.php` to use your theme:
 ```php
 'app' => [
-    'theme' => 'my-theme',
+    'theme' => 'my-theme', // Default is 'infinity'
 ],
 ```
 

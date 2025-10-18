@@ -12,7 +12,7 @@ return [
         'name' => 'Infinity CMS',
         'url' => 'http://localhost',
         'debug' => true,
-        'theme' => 'default',
+        'theme' => 'infinity',
         'timezone' => 'Asia/Shanghai',
     ],
 
