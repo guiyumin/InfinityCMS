@@ -10,10 +10,10 @@ return [
     // 应用配置
     'app' => [
         'name' => 'Infinity CMS',
-        'url' => 'http://localhost',
+        'url' => '',
         'debug' => true,
         'theme' => 'infinity',
-        'timezone' => 'Asia/Shanghai',
+        'timezone' => 'America/Los_Angeles',
     ],
 
     // 数据库配置

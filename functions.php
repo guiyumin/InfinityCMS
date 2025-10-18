@@ -43,7 +43,21 @@ function admin_view($template, $data = []) {
  * Generate URL
  */
 function url($path = '') {
-    $base = config('app.url', '');
+    // If full URL is provided, return as-is
+    if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+        return $path;
+    }
+
+    // Use configured URL if available, otherwise auto-detect
+    $base = config('app.url', null);
+
+    if (!$base) {
+        // Auto-detect base URL from current request
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        $base = $protocol . '://' . $host;
+    }
+
     return rtrim($base, '/') . '/' . ltrim($path, '/');
 }
 
