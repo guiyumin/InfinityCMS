@@ -17,12 +17,11 @@ function up($db) {
     ");
 
     // Insert default admin user (password: admin123)
-    $db->table('users')->insert([
-        'username' => 'admin',
-        'email' => 'admin@example.com',
-        'password' => password_hash('admin123', PASSWORD_DEFAULT),
-        'role' => 'admin',
-    ]);
+    $password = password_hash('admin123', PASSWORD_DEFAULT);
+    $db->execute("
+        INSERT INTO users (username, email, password, role)
+        VALUES ('admin', 'admin@example.com', '{$password}', 'admin')
+    ");
 }
 
 function down($db) {

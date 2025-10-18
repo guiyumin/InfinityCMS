@@ -69,6 +69,40 @@ cms/
    └─ logs/              # Log files
 ```
 
+## Database Migrations
+
+Migrations are managed through the admin dashboard at `/admin/migrations`.
+
+### Creating a New Migration
+
+Create a file in `database/migrations/` with format: `XXX_description.php`
+
+```php
+<?php
+// database/migrations/006_add_tags_table.php
+
+function up($db) {
+    $db->execute("
+        CREATE TABLE tags (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name VARCHAR(100) NOT NULL,
+            slug VARCHAR(100) UNIQUE NOT NULL
+        )
+    ");
+}
+
+function down($db) {
+    $db->execute("DROP TABLE IF EXISTS tags");
+}
+```
+
+### Running Migrations
+
+1. Visit `/admin/migrations` in your browser
+2. Click "Run Migrations" to execute pending migrations
+3. Use "Rollback" to undo the last batch
+4. Use "Reset" to rollback all migrations (⚠️ destructive)
+
 ## Creating a Plugin
 
 1. Create a new directory in `plugins/`
