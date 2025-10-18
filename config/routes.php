@@ -1,7 +1,6 @@
 <?php
 /**
  * Route Definitions
- * 路由定义
  */
 
 $router = app('router');

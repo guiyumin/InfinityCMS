@@ -1,25 +1,24 @@
 <?php
 /**
  * Application Bootstrap
- * 应用启动文件
  *
- * 此文件负责初始化整个应用程序
+ * This file is responsible for initializing the entire application
  */
 
-// 1. 加载 PSR-4 Autoloader
+// 1. Load PSR-4 Autoloader
 require __DIR__ . '/../autoloader.php';
 
 $loader = new Psr4Autoloader();
 $loader->addNamespace('App', __DIR__ . '/../app');
 $loader->register();
 
-// 2. 加载全局辅助函数
+// 2. Load global helper functions
 require __DIR__ . '/../functions.php';
 
-// 3. 加载环境配置
+// 3. Load environment configuration
 $env = require __DIR__ . '/../.env.php';
 
-// 4. 设置错误报告
+// 4. Set error reporting
 if ($env['app']['debug']) {
     error_reporting(E_ALL);
     ini_set('display_errors', '1');
@@ -28,7 +27,7 @@ if ($env['app']['debug']) {
     ini_set('display_errors', '0');
 }
 
-// 4.5 设置全局异常处理器
+// 4.5 Set global exception handler
 set_exception_handler(function($exception) use ($env) {
     // Log the error
     error_log($exception->getMessage() . ' in ' . $exception->getFile() . ':' . $exception->getLine());
@@ -69,10 +68,10 @@ set_exception_handler(function($exception) use ($env) {
     exit;
 });
 
-// 5. 设置时区
+// 5. Set timezone
 date_default_timezone_set($env['app']['timezone'] ?? 'UTC');
 
-// 6. 启动 Session
+// 6. Start Session
 session_start([
     'name' => $env['session']['name'],
     'cookie_lifetime' => $env['session']['lifetime'] * 60,
@@ -81,51 +80,51 @@ session_start([
     'cookie_httponly' => $env['session']['httponly'],
 ]);
 
-// 7. 初始化核心服务容器
+// 7. Initialize core service container
 $app = App\Core\App::getInstance();
 
-// 绑定配置服务
+// Bind configuration service
 $app->bind('config', new App\Core\Config($env));
 
-// 绑定请求和响应
+// Bind request and response
 $app->bind('request', new App\Core\Request());
 $app->bind('response', new App\Core\Response());
 
-// 绑定数据库
+// Bind database
 $app->bind('db', new App\Core\DB($env['database']));
 
-// 绑定路由
+// Bind router
 $app->bind('router', new App\Core\Router());
 
-// 绑定钩子系统
+// Bind hook system
 $app->bind('hook', new App\Core\Hook());
 
-// 绑定视图
+// Bind view
 $app->bind('view', new App\Core\View($env['app']['theme']));
 
-// 绑定管理后台视图
+// Bind admin view
 $app->bind('admin_view', new App\Core\AdminView());
 
-// 8. 加载插件
+// 8. Load plugins
 $pluginsPath = __DIR__ . '/../plugins';
 if (is_dir($pluginsPath)) {
     foreach (glob($pluginsPath . '/*/plugin.php') as $pluginFile) {
         $pluginDir = dirname($pluginFile);
         $pluginName = basename($pluginDir);
 
-        // 为插件注册命名空间
+        // Register namespace for plugin
         $loader->addNamespace(
             'Plugins\\' . str_replace('-', '', ucwords($pluginName, '-')),
             $pluginDir
         );
 
-        // 加载插件入口文件
+        // Load plugin entry file
         require $pluginFile;
     }
 }
 
-// 9. 注册路由
+// 9. Register routes
 require __DIR__ . '/../config/routes.php';
 
-// 10. 返回应用实例
+// 10. Return app instance
 return $app;
