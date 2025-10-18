@@ -118,8 +118,9 @@ class Response {
 
         // Try to render error template
         try {
-            if (app('view')->exists('errors.404')) {
-                $content = app('view')->render('errors.404', [
+            $view = app('view');
+            if ($view && $view->exists('errors.404')) {
+                $content = $view->render('errors.404', [
                     'title' => '404 Not Found',
                     'message' => $message,
                 ], null); // No layout
@@ -161,15 +162,16 @@ class Response {
 
         // Try to render error template
         try {
-            if (app('view')->exists('errors.500')) {
-                $content = app('view')->render('errors.500', [
+            $view = app('view');
+            if ($view && $view->exists('errors.500')) {
+                $content = $view->render('errors.500', [
                     'title' => '500 Internal Server Error',
                     'message' => $message,
                     'error_details' => $details,
                 ], null); // No layout
                 $this->setContent($content);
             } else {
-                $this->setContent($message);
+                $this->setContent($message . ($details ? "\n\n" . $details : ''));
             }
         } catch (\Exception $e) {
             // Fallback to plain text if template fails
