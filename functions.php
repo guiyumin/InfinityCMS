@@ -38,6 +38,14 @@ function view($template, $data = []) {
 }
 
 /**
+ * Render admin view template
+ * 快捷渲染管理后台视图
+ */
+function admin_view($template, $data = []) {
+    return app('admin_view')->render($template, $data);
+}
+
+/**
  * Generate URL
  * 生成 URL
  */

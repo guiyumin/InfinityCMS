@@ -62,6 +62,9 @@ $app->bind('hook', new App\Core\Hook());
 // 绑定视图
 $app->bind('view', new App\Core\View($env['app']['theme']));
 
+// 绑定管理后台视图
+$app->bind('admin_view', new App\Core\AdminView());
+
 // 8. 加载插件
 $pluginsPath = __DIR__ . '/../plugins';
 if (is_dir($pluginsPath)) {
