@@ -109,8 +109,15 @@ class View {
      * @return string
      */
     protected function renderFile($path, array $data = []) {
-        // Extract data as variables
-        extract($data);
+        // Validate path is within theme directory
+        $this->validateTemplatePath($path);
+
+        // Create secure theme context
+        $theme = new ThemeContext($data, $this->shared, $this);
+
+        // For backward compatibility, also extract data
+        // But prefix with EXTR_SKIP to prevent overwriting $theme and $path
+        extract($data, EXTR_SKIP);
 
         // Start output buffering
         ob_start();
@@ -130,6 +137,9 @@ class View {
      * @return string|null
      */
     protected function findTemplate($template) {
+        // Security: Remove any directory traversal attempts
+        $template = str_replace(['..', "\0"], '', $template);
+
         // Convert dot notation to path (admin.dashboard -> admin/dashboard)
         $template = str_replace('.', '/', $template);
 
@@ -142,7 +152,10 @@ class View {
 
         foreach ($paths as $path) {
             if (file_exists($path)) {
-                return $path;
+                // Validate the resolved path is within theme directory
+                if ($this->isPathSafe($path)) {
+                    return $path;
+                }
             }
         }
 
@@ -158,10 +171,18 @@ class View {
      * @return void
      */
     public function partial($partial, array $data = []) {
+        // Security: Remove any directory traversal attempts
+        $partial = str_replace(['..', "\0"], '', $partial);
+
         $partialPath = $this->themePath . "/partials/{$partial}.php";
 
-        if (file_exists($partialPath)) {
-            extract($data);
+        if (file_exists($partialPath) && $this->isPathSafe($partialPath)) {
+            // Create secure theme context
+            $theme = new ThemeContext($data, $this->shared, $this);
+
+            // Also extract for backward compatibility
+            extract($data, EXTR_SKIP);
+
             include $partialPath;
         }
     }
@@ -224,5 +245,45 @@ class View {
      */
     public function exists($template) {
         return $this->findTemplate($template) !== null;
+    }
+
+    /**
+     * Validate that a path is within the theme directory
+     * Security measure to prevent directory traversal
+     *
+     * @param string $path
+     * @return bool
+     */
+    protected function isPathSafe($path) {
+        // Get the real path (resolves symlinks and .. references)
+        $realPath = realpath($path);
+
+        if ($realPath === false) {
+            return false;
+        }
+
+        // Get the real theme path
+        $realThemePath = realpath($this->themePath);
+
+        if ($realThemePath === false) {
+            return false;
+        }
+
+        // Check if the resolved path starts with theme path
+        return str_starts_with($realPath, $realThemePath);
+    }
+
+    /**
+     * Validate template path before rendering
+     * Throws exception if path is outside theme directory
+     *
+     * @param string $path
+     * @return void
+     * @throws \Exception
+     */
+    protected function validateTemplatePath($path) {
+        if (!$this->isPathSafe($path)) {
+            throw new \Exception("Invalid template path: Path must be within theme directory");
+        }
     }
 }
