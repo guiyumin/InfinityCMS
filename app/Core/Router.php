@@ -20,6 +20,12 @@ class Router {
     ];
 
     /**
+     * Global middleware stack (runs on every request)
+     * @var array
+     */
+    protected $globalMiddleware = [];
+
+    /**
      * Middleware stack
      * @var array
      */
@@ -150,6 +156,17 @@ class Router {
     }
 
     /**
+     * Register global middleware
+     * 注册全局中间件
+     *
+     * @param string $middlewareName
+     * @return void
+     */
+    public function addGlobalMiddleware($middlewareName) {
+        $this->globalMiddleware[] = $middlewareName;
+    }
+
+    /**
      * Dispatch current request
      * 调度当前请求
      *
@@ -161,6 +178,15 @@ class Router {
         $method = $request->method();
         $uri = $request->uri();
 
+        // Run global middleware first
+        if (!empty($this->globalMiddleware)) {
+            foreach ($this->globalMiddleware as $middlewareName) {
+                if (!$this->runMiddleware($middlewareName, $request)) {
+                    return; // Global middleware blocked the request
+                }
+            }
+        }
+
         // Find matching route
         $route = $this->findRoute($method, $uri);
 
@@ -169,7 +195,7 @@ class Router {
             return;
         }
 
-        // Run middleware
+        // Run route-specific middleware
         if (!empty($route['middleware'])) {
             foreach ($route['middleware'] as $middlewareName) {
                 if (!$this->runMiddleware($middlewareName, $request)) {

@@ -123,8 +123,13 @@ if (is_dir($pluginsPath)) {
     }
 }
 
-// 9. Register routes
+// 9. Register global middleware
+// Setup middleware redirects to setup wizard if app is not configured
+$router = $app->get('router');
+$router->addGlobalMiddleware('Setup');
+
+// 10. Register routes
 require __DIR__ . '/../config/routes.php';
 
-// 10. Return app instance
+// 11. Return app instance
 return $app;

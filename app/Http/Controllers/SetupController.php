@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controllers;
+namespace App\Http\Controllers;
 
 use App\Core\AssetPublisher;
 
@@ -277,8 +277,10 @@ PHP;
 
         $config = include $envPath;
 
-        // Check if URL is still localhost (default)
-        if (isset($config['app']['url']) && $config['app']['url'] === 'http://localhost') {
+        // Check if URL is empty or still localhost (default/unconfigured)
+        if (!isset($config['app']['url']) ||
+            empty($config['app']['url']) ||
+            $config['app']['url'] === 'http://localhost') {
             return false;
         }
 
