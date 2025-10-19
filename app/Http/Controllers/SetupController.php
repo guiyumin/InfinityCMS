@@ -27,6 +27,9 @@ class SetupController {
             'old' => session('old', []),
         ];
 
+        // Clear errors and old input after reading them (flash behavior)
+        unset($_SESSION['errors'], $_SESSION['old']);
+
         return view('setup.index', $data, 'setup');
     }
 
@@ -168,10 +171,17 @@ class SetupController {
         try {
             $this->writeEnvFile($config);
 
+            // Reload environment to use new database config
+            // We need to reconnect to database with new credentials
+            $this->reloadDatabase($config);
+
+            // Run database migrations to create tables
+            $this->runMigrations();
+
             // Publish theme assets
             $this->publishAssets($config['theme']);
 
-            // Create admin user (if database is ready)
+            // Create admin user
             $this->createAdminUser($config);
 
             // Clear setup session
@@ -258,6 +268,41 @@ PHP;
     }
 
     /**
+     * Reload database connection with new configuration
+     */
+    protected function reloadDatabase($config) {
+        // Reconnect to database with new credentials
+        $dbConfig = [
+            'driver' => 'mysql',
+            'host' => $config['db_host'],
+            'port' => $config['db_port'],
+            'database' => $config['db_name'],
+            'username' => $config['db_user'],
+            'password' => $config['db_pass'],
+            'charset' => 'utf8mb4',
+        ];
+
+        // Rebind database with new connection
+        $app = \App\Core\App::getInstance();
+        $app->bind('db', new \App\Core\DB($dbConfig));
+    }
+
+    /**
+     * Run database migrations
+     */
+    protected function runMigrations() {
+        $migration = new \App\Core\Migration();
+        $results = $migration->run();
+
+        // Check for any failed migrations
+        foreach ($results as $result) {
+            if (strpos($result, '✗ Failed') !== false) {
+                throw new \Exception('Migration failed: ' . $result);
+            }
+        }
+    }
+
+    /**
      * Publish theme assets to public folder
      */
     protected function publishAssets($theme) {
@@ -269,10 +314,7 @@ PHP;
      */
     protected function createAdminUser($config) {
         try {
-            // Check if users table exists
-            $users = db()->table('users')->limit(1)->get();
-
-            // Create admin user
+            // Create admin user (migrations table should exist now)
             db()->table('users')->insert([
                 'username' => $config['admin_username'],
                 'email' => $config['admin_email'],
@@ -282,8 +324,8 @@ PHP;
                 'updated_at' => date('Y-m-d H:i:s'),
             ]);
         } catch (\Exception $e) {
-            // Database might not be ready yet, skip for now
-            // Admin can be created through migrations
+            // If user already exists (from migration seed), that's okay
+            // Just continue
         }
     }
 
@@ -340,7 +382,7 @@ PHP;
             if (strpos($message, 'Access denied') !== false) {
                 return [
                     'success' => false,
-                    'message' => 'Access denied: Invalid username or password.',
+                    'message' => 'Database Access Denied: Invalid username or password.',
                 ];
             } elseif (strpos($message, 'Unknown database') !== false) {
                 return [
@@ -355,7 +397,7 @@ PHP;
             } else {
                 return [
                     'success' => false,
-                    'message' => 'MySQL connection failed: ' . $message,
+                    'message' => 'Database connection failed: ' . $message,
                 ];
             }
         }

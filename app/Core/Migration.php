@@ -37,11 +37,11 @@ class Migration {
     protected function createMigrationsTable() {
         $this->db->execute("
             CREATE TABLE IF NOT EXISTS migrations (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id INT AUTO_INCREMENT PRIMARY KEY,
                 migration VARCHAR(255) NOT NULL,
-                batch INTEGER NOT NULL,
-                executed_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            )
+                batch INT NOT NULL,
+                executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         ");
     }
 
