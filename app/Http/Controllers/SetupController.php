@@ -51,16 +51,13 @@ class SetupController {
     protected function processStep1() {
         $data = [];
 
-        // Database configuration
-        $data['db_driver'] = request()->post('db_driver', 'sqlite');
-
-        if ($data['db_driver'] === 'mysql') {
-            $data['db_host'] = request()->post('db_host');
-            $data['db_port'] = request()->post('db_port', '3306');
-            $data['db_name'] = request()->post('db_name');
-            $data['db_user'] = request()->post('db_user');
-            $data['db_pass'] = request()->post('db_pass');
-        }
+        // MySQL Database configuration (always MySQL)
+        $data['db_driver'] = 'mysql';
+        $data['db_host'] = request()->post('db_host');
+        $data['db_port'] = request()->post('db_port', '3306');
+        $data['db_name'] = request()->post('db_name');
+        $data['db_user'] = request()->post('db_user');
+        $data['db_pass'] = request()->post('db_pass', '');
 
         // Admin account
         $data['admin_username'] = request()->post('admin_username');
@@ -71,31 +68,29 @@ class SetupController {
         // Validation
         $errors = [];
 
-        // Validate MySQL configuration if MySQL is selected
-        if ($data['db_driver'] === 'mysql') {
-            if (empty($data['db_host'])) {
-                $errors['db_host'] = 'Database host is required';
-            }
-            if (empty($data['db_name'])) {
-                $errors['db_name'] = 'Database name is required';
-            }
-            if (empty($data['db_user'])) {
-                $errors['db_user'] = 'Database username is required';
-            }
+        // Validate MySQL configuration
+        if (empty($data['db_host'])) {
+            $errors['db_host'] = 'Database host is required';
+        }
+        if (empty($data['db_name'])) {
+            $errors['db_name'] = 'Database name is required';
+        }
+        if (empty($data['db_user'])) {
+            $errors['db_user'] = 'Database username is required';
+        }
 
-            // Test MySQL connection if basic validation passes
-            if (empty($errors)) {
-                $connectionTest = $this->testMySQLConnection(
-                    $data['db_host'],
-                    $data['db_port'],
-                    $data['db_name'],
-                    $data['db_user'],
-                    $data['db_pass']
-                );
+        // Test MySQL connection if basic validation passes
+        if (empty($errors)) {
+            $connectionTest = $this->testMySQLConnection(
+                $data['db_host'],
+                $data['db_port'],
+                $data['db_name'],
+                $data['db_user'],
+                $data['db_pass']
+            );
 
-                if (!$connectionTest['success']) {
-                    $errors['general'] = $connectionTest['message'];
-                }
+            if (!$connectionTest['success']) {
+                $errors['general'] = $connectionTest['message'];
             }
         }
 
@@ -198,14 +193,8 @@ class SetupController {
     protected function writeEnvFile($config) {
         $envPath = base_path('.env.php');
 
-        // Database configuration
-        if ($config['db_driver'] === 'sqlite') {
-            $dbConfig = <<<PHP
-        'driver' => 'sqlite',
-        'path' => __DIR__ . '/storage/database.sqlite',
-PHP;
-        } else {
-            $dbConfig = <<<PHP
+        // MySQL Database configuration (always MySQL)
+        $dbConfig = <<<PHP
         'driver' => 'mysql',
         'host' => '{$config['db_host']}',
         'port' => {$config['db_port']},
@@ -214,7 +203,6 @@ PHP;
         'password' => '{$config['db_pass']}',
         'charset' => 'utf8mb4',
 PHP;
-        }
 
         $content = <<<PHP
 <?php

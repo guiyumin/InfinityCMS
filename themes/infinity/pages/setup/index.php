@@ -22,8 +22,9 @@ $old = $old ?? [];
 
 <?php if ($currentStep === '1'): ?>
     <!-- Step 1: Database & Admin Account -->
-    <form method="POST" action="<?= url('/setup/process') ?>" class="setup-content" x-data="{ dbDriver: '<?= $old['db_driver'] ?? 'sqlite' ?>' }">
+    <form method="POST" action="<?= url('/setup/process') ?>" class="setup-content">
         <input type="hidden" name="step" value="1">
+        <input type="hidden" name="db_driver" value="mysql">
 
         <h2 style="margin-bottom: 1.5rem;">Database & Admin Account</h2>
 
@@ -33,97 +34,81 @@ $old = $old ?? [];
             </div>
         <?php endif; ?>
 
-        <!-- Database Type Selection -->
-        <div class="form-group">
-            <label>Choose Database Type</label>
-            <div class="db-options">
-                <label class="db-option" :class="{ 'selected': dbDriver === 'sqlite' }">
-                    <input type="radio" name="db_driver" value="sqlite" x-model="dbDriver" checked>
-                    <div class="db-option-title">SQLite</div>
-                    <div class="db-option-desc">Simple, file-based database (recommended for beginners)</div>
-                </label>
+        <!-- MySQL Configuration -->
+        <h3 style="margin-bottom: 1rem;">MySQL Database Configuration</h3>
 
-                <label class="db-option" :class="{ 'selected': dbDriver === 'mysql' }">
-                    <input type="radio" name="db_driver" value="mysql" x-model="dbDriver">
-                    <div class="db-option-title">MySQL</div>
-                    <div class="db-option-desc">Traditional database server (for advanced users)</div>
-                </label>
-            </div>
+        <div class="form-group">
+            <label for="db_host">Database Host</label>
+            <input
+                type="text"
+                id="db_host"
+                name="db_host"
+                value="<?= e($old['db_host'] ?? 'localhost') ?>"
+                class="<?= isset($errors['db_host']) ? 'input-error' : '' ?>"
+                placeholder="localhost"
+                required>
+            <?php if (isset($errors['db_host'])): ?>
+                <div class="error"><?= e($errors['db_host']) ?></div>
+            <?php endif; ?>
         </div>
 
-        <!-- MySQL Configuration (only shown if MySQL is selected) -->
-        <div class="mysql-fields" :class="{ 'show': dbDriver === 'mysql' }">
-            <h3 style="margin-bottom: 1rem;">MySQL Configuration</h3>
+        <div class="form-group">
+            <label for="db_port">Database Port</label>
+            <input
+                type="text"
+                id="db_port"
+                name="db_port"
+                value="<?= e($old['db_port'] ?? '3306') ?>"
+                class="<?= isset($errors['db_port']) ? 'input-error' : '' ?>"
+                placeholder="3306">
+            <?php if (isset($errors['db_port'])): ?>
+                <div class="error"><?= e($errors['db_port']) ?></div>
+            <?php endif; ?>
+        </div>
 
-            <div class="form-group">
-                <label for="db_host">Database Host</label>
-                <input
-                    type="text"
-                    id="db_host"
-                    name="db_host"
-                    value="<?= e($old['db_host'] ?? 'localhost') ?>"
-                    class="<?= isset($errors['db_host']) ? 'input-error' : '' ?>"
-                    placeholder="localhost">
-                <?php if (isset($errors['db_host'])): ?>
-                    <div class="error"><?= e($errors['db_host']) ?></div>
-                <?php endif; ?>
-            </div>
+        <div class="form-group">
+            <label for="db_name">Database Name</label>
+            <input
+                type="text"
+                id="db_name"
+                name="db_name"
+                value="<?= e($old['db_name'] ?? '') ?>"
+                class="<?= isset($errors['db_name']) ? 'input-error' : '' ?>"
+                placeholder="infinity_cms"
+                required>
+            <?php if (isset($errors['db_name'])): ?>
+                <div class="error"><?= e($errors['db_name']) ?></div>
+            <?php endif; ?>
+            <div class="help-text">The database must already exist on your MySQL server</div>
+        </div>
 
-            <div class="form-group">
-                <label for="db_port">Database Port</label>
-                <input
-                    type="text"
-                    id="db_port"
-                    name="db_port"
-                    value="<?= e($old['db_port'] ?? '3306') ?>"
-                    class="<?= isset($errors['db_port']) ? 'input-error' : '' ?>"
-                    placeholder="3306">
-                <?php if (isset($errors['db_port'])): ?>
-                    <div class="error"><?= e($errors['db_port']) ?></div>
-                <?php endif; ?>
-            </div>
+        <div class="form-group">
+            <label for="db_user">Database Username</label>
+            <input
+                type="text"
+                id="db_user"
+                name="db_user"
+                value="<?= e($old['db_user'] ?? '') ?>"
+                class="<?= isset($errors['db_user']) ? 'input-error' : '' ?>"
+                placeholder="Enter database username"
+                required>
+            <?php if (isset($errors['db_user'])): ?>
+                <div class="error"><?= e($errors['db_user']) ?></div>
+            <?php endif; ?>
+        </div>
 
-            <div class="form-group">
-                <label for="db_name">Database Name</label>
-                <input
-                    type="text"
-                    id="db_name"
-                    name="db_name"
-                    value="<?= e($old['db_name'] ?? '') ?>"
-                    class="<?= isset($errors['db_name']) ? 'input-error' : '' ?>"
-                    placeholder="infinity_cms">
-                <?php if (isset($errors['db_name'])): ?>
-                    <div class="error"><?= e($errors['db_name']) ?></div>
-                <?php endif; ?>
-                <div class="help-text">The database must already exist on your MySQL server</div>
-            </div>
-
-            <div class="form-group">
-                <label for="db_user">Database Username</label>
-                <input
-                    type="text"
-                    id="db_user"
-                    name="db_user"
-                    value="<?= e($old['db_user'] ?? '') ?>"
-                    class="<?= isset($errors['db_user']) ? 'input-error' : '' ?>"
-                    placeholder="root">
-                <?php if (isset($errors['db_user'])): ?>
-                    <div class="error"><?= e($errors['db_user']) ?></div>
-                <?php endif; ?>
-            </div>
-
-            <div class="form-group">
-                <label for="db_pass">Database Password</label>
-                <input
-                    type="password"
-                    id="db_pass"
-                    name="db_pass"
-                    class="<?= isset($errors['db_pass']) ? 'input-error' : '' ?>"
-                    placeholder="Enter database password">
-                <?php if (isset($errors['db_pass'])): ?>
-                    <div class="error"><?= e($errors['db_pass']) ?></div>
-                <?php endif; ?>
-            </div>
+        <div class="form-group">
+            <label for="db_pass">Database Password</label>
+            <input
+                type="password"
+                id="db_pass"
+                name="db_pass"
+                class="<?= isset($errors['db_pass']) ? 'input-error' : '' ?>"
+                placeholder="Enter database password">
+            <?php if (isset($errors['db_pass'])): ?>
+                <div class="error"><?= e($errors['db_pass']) ?></div>
+            <?php endif; ?>
+            <div class="help-text">Leave blank if your database has no password</div>
         </div>
 
         <hr style="margin: 2rem 0; border: none; border-top: 1px solid #e9ecef;">
