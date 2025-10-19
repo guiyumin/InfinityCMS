@@ -246,4 +246,26 @@ class PostController {
 
         return null;
     }
+
+    /**
+     * Preview Markdown content
+     *
+     * @return void
+     */
+    public function preview() {
+        $content = request()->post('content', '');
+
+        if (empty($content)) {
+            echo '<p style="color: #6b7280;">Nothing to preview</p>';
+            exit;
+        }
+
+        // Parse Markdown to HTML
+        $parsedown = new Parsedown();
+        $parsedown->setSafeMode(true); // Enable safe mode to prevent XSS
+        $html = $parsedown->text($content);
+
+        echo $html;
+        exit;
+    }
 }

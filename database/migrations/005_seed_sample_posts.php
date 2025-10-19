@@ -12,7 +12,9 @@ return [
             (
                 'Welcome to Infinity CMS',
                 'welcome-to-infinity-cms',
-                '<p>Welcome to Infinity CMS! This is a modern, lightweight content management system built with PHP, HTMX, and Alpine.js.</p><p>Features include a powerful plugin system, beautiful themes, and a great developer experience.</p>',
+                'Welcome to **Infinity CMS**! This is a modern, lightweight content management system built with PHP, HTMX, and Alpine.js.
+
+Features include a powerful plugin system, beautiful themes, and a great developer experience.',
                 'Welcome to Infinity CMS - a modern, lightweight CMS',
                 'Admin',
                 'published'
@@ -20,7 +22,16 @@ return [
             (
                 'Getting Started with Plugins',
                 'getting-started-with-plugins',
-                '<p>Creating plugins for Infinity CMS is easy! Just create a directory in the plugins folder with a manifest.php and plugin.php file.</p><p>You can use hooks and filters to extend functionality without modifying core files.</p>',
+                '# Getting Started with Plugins
+
+Creating plugins for Infinity CMS is easy! Just create a directory in the plugins folder with a `manifest.php` and `plugin.php` file.
+
+## Key Features
+- Use hooks and filters to extend functionality
+- No need to modify core files
+- Simple and intuitive API
+
+You can use hooks and filters to extend functionality without modifying core files.',
                 'Learn how to create plugins for Infinity CMS',
                 'Admin',
                 'published'
@@ -28,7 +39,16 @@ return [
             (
                 'Customizing Your Theme',
                 'customizing-your-theme',
-                '<p>Themes in Infinity CMS are simple to create and customize. Use HTMX for dynamic content and Alpine.js for interactivity.</p><p>No need for complex build tools - just pure HTML, CSS, and minimal JavaScript.</p>',
+                '# Customizing Your Theme
+
+Themes in Infinity CMS are simple to create and customize. Use **HTMX** for dynamic content and **Alpine.js** for interactivity.
+
+## Benefits
+- No complex build tools required
+- Pure HTML, CSS, and minimal JavaScript
+- Fast and responsive
+
+No need for complex build tools - just pure HTML, CSS, and minimal JavaScript.',
                 'Learn how to customize themes',
                 'Admin',
                 'draft'

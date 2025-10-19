@@ -68,6 +68,7 @@ $router->group(['prefix' => '/admin', 'middleware' => 'admin'], function($router
     $router->get('/posts/{id}/edit', 'Admin/PostController@edit');
     $router->post('/posts/{id}', 'Admin/PostController@update');
     $router->delete('/posts/{id}', 'Admin/PostController@destroy');
+    $router->post('/posts/preview', 'Admin/PostController@preview');
 
     // HTMX endpoints for admin
     $router->get('/stats', 'Admin/DashboardController@stats');

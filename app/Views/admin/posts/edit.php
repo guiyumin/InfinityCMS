@@ -32,8 +32,17 @@
 
             <div class="form-group">
                 <label for="content">Content * <small>(Markdown supported)</small></label>
-                <textarea id="content" name="content" class="form-control" rows="15" required placeholder="Write your content in Markdown format..."><?= htmlspecialchars($post['content']) ?></textarea>
-                <small class="form-help">You can use Markdown formatting: **bold**, *italic*, # headings, [links](url), ![images](url), etc.</small>
+                <div class="content-tabs">
+                    <button type="button" class="tab-button active" onclick="showTab('write')">Write</button>
+                    <button type="button" class="tab-button" onclick="showTab('preview')">Preview</button>
+                </div>
+                <div id="write-tab" class="tab-content active">
+                    <textarea id="content" name="content" class="form-control" rows="15" required placeholder="Write your content in Markdown format..."><?= htmlspecialchars($post['content']) ?></textarea>
+                    <small class="form-help">You can use Markdown formatting: **bold**, *italic*, # headings, [links](url), ![images](url), etc.</small>
+                </div>
+                <div id="preview-tab" class="tab-content" style="display: none;">
+                    <div id="preview-content" class="markdown-preview"></div>
+                </div>
             </div>
 
             <div class="form-group">
@@ -244,6 +253,96 @@ textarea.form-control {
     background: #475569;
 }
 
+.content-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.tab-button {
+    padding: 0.5rem 1rem;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: #6b7280;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tab-button:hover {
+    color: #3b82f6;
+}
+
+.tab-button.active {
+    color: #3b82f6;
+    border-bottom-color: #3b82f6;
+}
+
+.tab-content {
+    min-height: 400px;
+}
+
+.markdown-preview {
+    padding: 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    background: white;
+    min-height: 400px;
+    overflow-y: auto;
+}
+
+.markdown-preview h1 { font-size: 2em; margin: 0.67em 0; font-weight: bold; }
+.markdown-preview h2 { font-size: 1.5em; margin: 0.83em 0; font-weight: bold; }
+.markdown-preview h3 { font-size: 1.17em; margin: 1em 0; font-weight: bold; }
+.markdown-preview h4 { font-size: 1em; margin: 1.33em 0; font-weight: bold; }
+.markdown-preview h5 { font-size: 0.83em; margin: 1.67em 0; font-weight: bold; }
+.markdown-preview h6 { font-size: 0.67em; margin: 2.33em 0; font-weight: bold; }
+.markdown-preview p { margin: 1em 0; line-height: 1.6; }
+.markdown-preview ul, .markdown-preview ol { margin: 1em 0; padding-left: 2em; }
+.markdown-preview li { margin: 0.5em 0; }
+.markdown-preview blockquote {
+    margin: 1em 0;
+    padding: 0.5em 1em;
+    border-left: 4px solid #e5e7eb;
+    background: #f9fafb;
+}
+.markdown-preview code {
+    background: #f3f4f6;
+    padding: 0.2em 0.4em;
+    border-radius: 0.25rem;
+    font-family: monospace;
+    font-size: 0.875em;
+}
+.markdown-preview pre {
+    background: #1e293b;
+    color: #e2e8f0;
+    padding: 1em;
+    border-radius: 0.375rem;
+    overflow-x: auto;
+    margin: 1em 0;
+}
+.markdown-preview pre code {
+    background: none;
+    padding: 0;
+    color: inherit;
+}
+.markdown-preview img {
+    max-width: 100%;
+    height: auto;
+}
+.markdown-preview a {
+    color: #3b82f6;
+    text-decoration: underline;
+}
+.markdown-preview hr {
+    border: none;
+    border-top: 1px solid #e5e7eb;
+    margin: 2em 0;
+}
+
 @media (max-width: 768px) {
     .form-row {
         grid-template-columns: 1fr;
@@ -254,3 +353,50 @@ textarea.form-control {
     }
 }
 </style>
+
+<script>
+function showTab(tab) {
+    const writeTab = document.getElementById('write-tab');
+    const previewTab = document.getElementById('preview-tab');
+    const buttons = document.querySelectorAll('.tab-button');
+
+    if (tab === 'write') {
+        writeTab.style.display = 'block';
+        previewTab.style.display = 'none';
+        buttons[0].classList.add('active');
+        buttons[1].classList.remove('active');
+    } else {
+        writeTab.style.display = 'none';
+        previewTab.style.display = 'block';
+        buttons[0].classList.remove('active');
+        buttons[1].classList.add('active');
+
+        // Render preview
+        const content = document.getElementById('content').value;
+        renderPreview(content);
+    }
+}
+
+function renderPreview(markdown) {
+    const previewElement = document.getElementById('preview-content');
+
+    // Show loading state
+    previewElement.innerHTML = '<p style="color: #6b7280;">Loading preview...</p>';
+
+    // Send markdown to server for parsing
+    fetch('<?= url('/admin/posts/preview') ?>', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'content=' + encodeURIComponent(markdown)
+    })
+    .then(response => response.text())
+    .then(html => {
+        previewElement.innerHTML = html || '<p style="color: #6b7280;">Nothing to preview</p>';
+    })
+    .catch(error => {
+        previewElement.innerHTML = '<p style="color: #ef4444;">Error loading preview</p>';
+    });
+}
+</script>
