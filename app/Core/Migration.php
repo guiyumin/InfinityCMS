@@ -217,11 +217,14 @@ class Migration {
      * @return void
      */
     protected function executeMigration($migration) {
-        require_once $this->migrationsPath . '/' . $migration . '.php';
+        $migrationFile = $this->migrationsPath . '/' . $migration . '.php';
 
-        // Call up() function
-        if (function_exists('up')) {
-            up($this->db);
+        // Load migration and get the returned array
+        $migrationDef = include $migrationFile;
+
+        // Execute the up closure
+        if (isset($migrationDef['up']) && is_callable($migrationDef['up'])) {
+            $migrationDef['up']($this->db);
         }
     }
 
@@ -233,11 +236,14 @@ class Migration {
      * @return void
      */
     protected function executeMigrationDown($migration) {
-        require_once $this->migrationsPath . '/' . $migration . '.php';
+        $migrationFile = $this->migrationsPath . '/' . $migration . '.php';
 
-        // Call down() function
-        if (function_exists('down')) {
-            down($this->db);
+        // Load migration and get the returned array
+        $migrationDef = include $migrationFile;
+
+        // Execute the down closure
+        if (isset($migrationDef['down']) && is_callable($migrationDef['down'])) {
+            $migrationDef['down']($this->db);
         }
     }
 
