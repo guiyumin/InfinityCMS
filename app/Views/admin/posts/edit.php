@@ -355,6 +355,154 @@ textarea.form-control {
 </style>
 
 <script>
+// Get post ID for unique localStorage key
+const postId = <?= $post['id'] ?>;
+const draftKey = `post_draft_${postId}`;
+const draftStatusKey = `post_draft_status_${postId}`;
+
+// Auto-save functionality
+let saveTimeout;
+let lastSavedContent = '';
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const contentField = document.getElementById('content');
+    const titleField = document.getElementById('title');
+    const excerptField = document.getElementById('excerpt');
+
+    // Restore draft if it exists
+    restoreDraft();
+
+    // Set up auto-save listeners
+    [contentField, titleField, excerptField].forEach(field => {
+        if (field) {
+            field.addEventListener('input', function() {
+                clearTimeout(saveTimeout);
+                saveTimeout = setTimeout(() => saveDraft(), 1000); // Save after 1 second of inactivity
+                updateDraftIndicator('typing');
+            });
+        }
+    });
+
+    // Clear draft on successful form submission
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function() {
+        clearDraft();
+    });
+});
+
+function saveDraft() {
+    const draft = {
+        title: document.getElementById('title').value,
+        content: document.getElementById('content').value,
+        excerpt: document.getElementById('excerpt').value,
+        timestamp: Date.now()
+    };
+
+    try {
+        localStorage.setItem(draftKey, JSON.stringify(draft));
+        lastSavedContent = draft.content;
+        updateDraftIndicator('saved');
+    } catch (e) {
+        console.error('Failed to save draft:', e);
+        updateDraftIndicator('error');
+    }
+}
+
+function restoreDraft() {
+    try {
+        const savedDraft = localStorage.getItem(draftKey);
+        if (savedDraft) {
+            const draft = JSON.parse(savedDraft);
+            const currentContent = document.getElementById('content').value;
+            const currentTitle = document.getElementById('title').value;
+
+            // Check if draft is newer than current content
+            const draftTime = new Date(draft.timestamp);
+            const timeDiff = Date.now() - draft.timestamp;
+            const hoursSince = timeDiff / (1000 * 60 * 60);
+
+            // Only restore if draft is different from current content and less than 24 hours old
+            if (hoursSince < 24 && (draft.content !== currentContent || draft.title !== currentTitle)) {
+                const restore = confirm(`Found an unsaved draft from ${draftTime.toLocaleString()}. Would you like to restore it?`);
+
+                if (restore) {
+                    document.getElementById('title').value = draft.title || '';
+                    document.getElementById('content').value = draft.content || '';
+                    document.getElementById('excerpt').value = draft.excerpt || '';
+                    updateDraftIndicator('restored');
+                } else {
+                    clearDraft();
+                }
+            } else if (hoursSince >= 24) {
+                // Clear old drafts
+                clearDraft();
+            }
+        }
+    } catch (e) {
+        console.error('Failed to restore draft:', e);
+    }
+}
+
+function clearDraft() {
+    try {
+        localStorage.removeItem(draftKey);
+        localStorage.removeItem(draftStatusKey);
+        updateDraftIndicator('cleared');
+    } catch (e) {
+        console.error('Failed to clear draft:', e);
+    }
+}
+
+function updateDraftIndicator(status) {
+    let indicator = document.getElementById('draft-indicator');
+
+    // Create indicator if it doesn't exist
+    if (!indicator) {
+        indicator = document.createElement('span');
+        indicator.id = 'draft-indicator';
+        indicator.style.cssText = 'margin-left: 10px; font-size: 0.875rem; padding: 2px 8px; border-radius: 3px;';
+
+        const header = document.querySelector('.page-header h1');
+        if (header) {
+            header.appendChild(indicator);
+        }
+    }
+
+    switch(status) {
+        case 'typing':
+            indicator.textContent = 'Saving...';
+            indicator.style.background = '#fef3c7';
+            indicator.style.color = '#92400e';
+            break;
+        case 'saved':
+            indicator.textContent = 'Draft saved';
+            indicator.style.background = '#d1fae5';
+            indicator.style.color = '#065f46';
+            setTimeout(() => {
+                indicator.style.display = 'none';
+            }, 3000);
+            break;
+        case 'restored':
+            indicator.textContent = 'Draft restored';
+            indicator.style.background = '#dbeafe';
+            indicator.style.color = '#1e40af';
+            break;
+        case 'error':
+            indicator.textContent = 'Failed to save';
+            indicator.style.background = '#fee2e2';
+            indicator.style.color = '#991b1b';
+            break;
+        case 'cleared':
+            indicator.style.display = 'none';
+            break;
+    }
+
+    if (status !== 'cleared') {
+        indicator.style.display = 'inline-block';
+    }
+}
+
 function showTab(tab) {
     const writeTab = document.getElementById('write-tab');
     const previewTab = document.getElementById('preview-tab');
@@ -371,7 +519,10 @@ function showTab(tab) {
         buttons[0].classList.remove('active');
         buttons[1].classList.add('active');
 
-        // Render preview
+        // Save draft before preview
+        saveDraft();
+
+        // Render preview using the current content
         const content = document.getElementById('content').value;
         renderPreview(content);
     }
@@ -383,6 +534,12 @@ function renderPreview(markdown) {
     // Show loading state
     previewElement.innerHTML = '<p style="color: #6b7280;">Loading preview...</p>';
 
+    // If no content, show empty message
+    if (!markdown || !markdown.trim()) {
+        previewElement.innerHTML = '<p style="color: #6b7280;">Nothing to preview. Start typing in the Write tab.</p>';
+        return;
+    }
+
     // Send markdown to server for parsing
     fetch('<?= url('/admin/posts/preview') ?>', {
         method: 'POST',
@@ -391,12 +548,27 @@ function renderPreview(markdown) {
         },
         body: 'content=' + encodeURIComponent(markdown)
     })
-    .then(response => response.text())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.text();
+    })
     .then(html => {
-        previewElement.innerHTML = html || '<p style="color: #6b7280;">Nothing to preview</p>';
+        previewElement.innerHTML = html;
     })
     .catch(error => {
-        previewElement.innerHTML = '<p style="color: #ef4444;">Error loading preview</p>';
+        console.error('Preview error:', error);
+        previewElement.innerHTML = '<p style="color: #ef4444;">Error loading preview. Please try again.</p>';
     });
 }
+
+// Add keyboard shortcut for preview (Ctrl/Cmd + Shift + P)
+document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'P') {
+        e.preventDefault();
+        const isInPreview = document.getElementById('preview-tab').style.display !== 'none';
+        showTab(isInPreview ? 'write' : 'preview');
+    }
+});
 </script>
