@@ -165,6 +165,53 @@
             border: 1px solid #f5c6cb;
         }
 
+        .alert-danger h4 {
+            margin-top: 0;
+            margin-bottom: 0.75rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .migration-details {
+            background: white;
+            padding: 0.75rem;
+            border-radius: 0.25rem;
+            margin: 0.75rem 0;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.875rem;
+        }
+
+        .migration-details p {
+            margin: 0.25rem 0;
+            line-height: 1.4;
+        }
+
+        .text-danger {
+            color: #dc3545;
+            font-weight: 500;
+        }
+
+        .text-success {
+            color: #16a34a;
+        }
+
+        .alert-help {
+            margin-top: 0.75rem;
+            font-size: 0.875rem;
+            color: #7c2d12;
+        }
+
+        .alert-help ul {
+            margin: 0.5rem 0 0 1.5rem;
+            padding: 0;
+        }
+
+        .alert-help li {
+            margin: 0.25rem 0;
+        }
+
         .alert-info {
             background: #d1ecf1;
             color: #0c5460;

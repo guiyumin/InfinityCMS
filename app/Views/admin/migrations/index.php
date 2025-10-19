@@ -36,19 +36,33 @@
 
     <?php if ($message = flash('success')): ?>
         <div class="alert alert-success">
-            <?= $message ?>
+            <div class="alert-content">
+                <?= $message ?>
+            </div>
         </div>
     <?php endif; ?>
 
     <?php if ($message = flash('warning')): ?>
         <div class="alert alert-warning">
-            <?= $message ?>
+            <div class="alert-content">
+                <?= $message ?>
+            </div>
         </div>
     <?php endif; ?>
 
     <?php if ($message = flash('danger')): ?>
         <div class="alert alert-danger">
-            <?= $message ?>
+            <div class="alert-content">
+                <?= $message ?>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <?php if ($message = flash('info')): ?>
+        <div class="alert alert-info">
+            <div class="alert-content">
+                <?= $message ?>
+            </div>
         </div>
     <?php endif; ?>
 
@@ -133,6 +147,32 @@
     background: #f8d7da;
     color: #721c24;
     border: 1px solid #f5c6cb;
+}
+
+.alert-info {
+    background: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+.alert-content {
+    line-height: 1.6;
+}
+
+.alert-content h4 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.alert-content p {
+    margin: 0.25rem 0;
+}
+
+.alert-content .text-danger {
+    color: #dc3545;
+    font-weight: 500;
 }
 
 .table-container {

@@ -20,9 +20,16 @@ class SetupController {
             return;
         }
 
+        $step = request()->get('step', '1');
+
+        // Validate step value
+        if (!in_array($step, ['1', '2', '3'])) {
+            $step = '1';
+        }
+
         $data = [
             'title' => 'Setup - Infinity CMS',
-            'step' => request()->get('step', '1'),
+            'step' => $step,
             'errors' => session('errors', []),
             'old' => session('old', []),
         ];
@@ -62,13 +69,15 @@ class SetupController {
             return $this->processStep1();
         } elseif ($step === '2') {
             return $this->processStep2();
+        } elseif ($step === '3') {
+            return $this->processStep3();
         }
 
         return $this->index();
     }
 
     /**
-     * Process Step 1: Database & Admin Account
+     * Process Step 1: Database Setup
      */
     protected function processStep1() {
         $data = [];
@@ -80,28 +89,6 @@ class SetupController {
         $data['db_name'] = request()->post('db_name');
         $data['db_user'] = request()->post('db_user');
         $data['db_pass'] = request()->post('db_pass', '');
-
-        // Get admin account option
-        $adminOption = request()->post('admin_option', 'custom');
-        $data['admin_option'] = $adminOption;
-
-        if ($adminOption === 'default') {
-            // Use default credentials
-            $data['admin_username'] = 'admin';
-            $data['admin_email'] = 'admin@example.com';
-            $data['admin_password'] = 'admin123';
-        } elseif ($adminOption === 'skip') {
-            // Skip admin creation - user already has admin in DB
-            $data['admin_username'] = null;
-            $data['admin_email'] = null;
-            $data['admin_password'] = null;
-        } else {
-            // Get custom admin account details
-            $data['admin_username'] = request()->post('admin_username');
-            $data['admin_email'] = request()->post('admin_email');
-            $data['admin_password'] = request()->post('admin_password');
-            $password_confirm = request()->post('admin_password_confirm');
-        }
 
         // Validation
         $errors = [];
@@ -132,47 +119,120 @@ class SetupController {
             }
         }
 
-        // Validate admin account only for custom option
-        if ($adminOption === 'custom') {
-            if (empty($data['admin_username'])) {
-                $errors['admin_username'] = 'Username is required';
-            }
-            if (empty($data['admin_email'])) {
-                $errors['admin_email'] = 'Email is required';
-            } elseif (!filter_var($data['admin_email'], FILTER_VALIDATE_EMAIL)) {
-                $errors['admin_email'] = 'Please enter a valid email';
-            }
-            if (empty($data['admin_password'])) {
-                $errors['admin_password'] = 'Password is required';
-            } elseif (strlen($data['admin_password']) < 8) {
-                $errors['admin_password'] = 'Password must be at least 8 characters';
-            }
-            if ($data['admin_password'] !== $password_confirm) {
-                $errors['admin_password_confirm'] = 'Passwords do not match';
-            }
-        }
 
         if (!empty($errors)) {
             $_SESSION['errors'] = $errors;
-            // Store old values (except password) for form repopulation
-            $oldData = $data;
-            unset($oldData['admin_password']); // Don't store password in session
-            $_SESSION['old'] = $oldData;
+            // Store old values for form repopulation
+            $_SESSION['old'] = $data;
             redirect(url('/setup?step=1'));
             return;
         }
 
-        // Store in session for step 2
-        $_SESSION['setup_config'] = $data;
-        unset($_SESSION['errors'], $_SESSION['old']);
+        // Write initial configuration file
+        try {
+            $this->writeEnvFile($data);
 
-        redirect(url('/setup?step=2'));
+            // Reload database connection with new configuration
+            $this->reloadDatabase($data);
+
+            // Run database migrations to create tables
+            $migrationResult = $this->runMigrations();
+
+            // Check if migrations failed
+            if (!$migrationResult['success']) {
+                // Store migration errors in session
+                $_SESSION['migration_errors'] = $migrationResult;
+                $errors['general'] = 'Database setup failed. ' . $migrationResult['failureCount'] . ' migration(s) failed. See details below.';
+                $_SESSION['errors'] = $errors;
+
+                // Store old values for form repopulation
+                $_SESSION['old'] = $data;
+
+                redirect(url('/setup?step=1'));
+                return;
+            }
+
+            // Store in session for step 2
+            $_SESSION['setup_config'] = $data;
+            unset($_SESSION['errors'], $_SESSION['old'], $_SESSION['migration_errors']);
+
+            redirect(url('/setup?step=2'));
+
+        } catch (\Exception $e) {
+            $_SESSION['errors'] = ['general' => 'Setup failed: ' . $e->getMessage()];
+            $_SESSION['old'] = $data;
+            redirect(url('/setup?step=1'));
+        }
     }
 
     /**
-     * Process Step 2: Site Settings
+     * Process Step 2: Admin Account Creation
      */
     protected function processStep2() {
+        if (!isset($_SESSION['setup_config'])) {
+            redirect(url('/setup?step=1'));
+            return;
+        }
+
+        $config = $_SESSION['setup_config'];
+
+        // Admin account configuration
+        $adminOption = request()->post('admin_option', 'custom');
+        $config['admin_option'] = $adminOption;
+
+        if ($adminOption === 'custom') {
+            $config['admin_username'] = request()->post('admin_username');
+            $config['admin_email'] = request()->post('admin_email');
+            $config['admin_password'] = request()->post('admin_password');
+            $password_confirm = request()->post('admin_password_confirm');
+
+            // Validation
+            $errors = [];
+
+            if (empty($config['admin_username'])) {
+                $errors['admin_username'] = 'Username is required';
+            }
+            if (empty($config['admin_email'])) {
+                $errors['admin_email'] = 'Email is required';
+            } elseif (!filter_var($config['admin_email'], FILTER_VALIDATE_EMAIL)) {
+                $errors['admin_email'] = 'Please enter a valid email';
+            }
+            if (empty($config['admin_password'])) {
+                $errors['admin_password'] = 'Password is required';
+            } elseif (strlen($config['admin_password']) < 8) {
+                $errors['admin_password'] = 'Password must be at least 8 characters';
+            }
+            if ($config['admin_password'] !== $password_confirm) {
+                $errors['admin_password_confirm'] = 'Passwords do not match';
+            }
+
+            if (!empty($errors)) {
+                $_SESSION['errors'] = $errors;
+                $oldData = $config;
+                unset($oldData['admin_password']);
+                $_SESSION['old'] = $oldData;
+                redirect(url('/setup?step=2'));
+                return;
+            }
+        } elseif ($adminOption === 'default') {
+            // Use default admin credentials
+            $config['admin_username'] = 'admin';
+            $config['admin_email'] = 'admin@example.com';
+            $config['admin_password'] = 'admin123';
+        }
+        // If 'skip' is selected, we don't create any user
+
+        // Store updated config in session
+        $_SESSION['setup_config'] = $config;
+
+        // Proceed to step 3
+        redirect(url('/setup?step=3'));
+    }
+
+    /**
+     * Process Step 3: Site Settings
+     */
+    protected function processStep3() {
         if (!isset($_SESSION['setup_config'])) {
             redirect(url('/setup?step=1'));
             return;
@@ -183,7 +243,7 @@ class SetupController {
         // Preserve admin option
         $adminOption = $config['admin_option'] ?? 'custom';
 
-        // Site settings from step 2
+        // Site settings from step 3
         $config['app_name'] = request()->post('app_name');
         $config['app_url'] = rtrim(request()->post('app_url'), '/');
         $config['timezone'] = request()->post('timezone', 'UTC');
@@ -203,29 +263,25 @@ class SetupController {
         if (!empty($errors)) {
             $_SESSION['errors'] = $errors;
             $_SESSION['old'] = $config;
-            redirect(url('/setup?step=2'));
+            redirect(url('/setup?step=3'));
             return;
         }
 
-        // Write configuration file
+        // Update configuration file with site settings
         try {
             $this->writeEnvFile($config);
 
-            // Reload environment to use new database config
-            // We need to reconnect to database with new credentials
+            // Reload environment to use updated config
             $this->reloadDatabase($config);
-
-            // Run database migrations to create tables
-            $this->runMigrations();
 
             // Publish theme assets
             $this->publishAssets($config['theme']);
 
-            // Create admin user
+            // Create admin user (migrations already ran in step 1)
             $this->createAdminUser($config);
 
             // Clear setup session
-            unset($_SESSION['setup_config'], $_SESSION['errors'], $_SESSION['old']);
+            unset($_SESSION['setup_config'], $_SESSION['errors'], $_SESSION['old'], $_SESSION['migration_errors']);
 
             // Set success message based on admin option
             if ($adminOption === 'default') {
@@ -239,7 +295,7 @@ class SetupController {
             redirect(url('/login'));
         } catch (\Exception $e) {
             $_SESSION['errors'] = ['general' => 'Setup failed: ' . $e->getMessage()];
-            redirect(url('/setup?step=2'));
+            redirect(url('/setup?step=3'));
         }
     }
 
@@ -248,6 +304,12 @@ class SetupController {
      */
     protected function writeEnvFile($config) {
         $envPath = base_path('config.php');
+
+        // Ensure default values
+        $appName = $config['app_name'] ?? 'Infinity CMS';
+        $appUrl = $config['app_url'] ?? 'http://localhost';
+        $theme = $config['theme'] ?? 'infinity';
+        $timezone = $config['timezone'] ?? 'UTC';
 
         // MySQL Database configuration (always MySQL)
         $dbConfig = <<<PHP
@@ -272,11 +334,11 @@ PHP;
 return [
     // 应用配置
     'app' => [
-        'name' => '{$config['app_name']}',
-        'url' => '{$config['app_url']}',
+        'name' => '{$appName}',
+        'url' => '{$appUrl}',
         'debug' => true,
-        'theme' => '{$config['theme']}',
-        'timezone' => '{$config['timezone']}',
+        'theme' => '{$theme}',
+        'timezone' => '{$timezone}',
     ],
 
     // 数据库配置
@@ -341,11 +403,37 @@ PHP;
         $results = $migration->run();
 
         // Check for any failed migrations
+        $hasErrors = false;
+        $errorMessages = [];
+        $successCount = 0;
+        $failureCount = 0;
+
         foreach ($results as $result) {
-            if (strpos($result, '✗ Failed') !== false) {
-                throw new \Exception('Migration failed: ' . $result);
+            if (strpos($result, '✗') !== false) {
+                $hasErrors = true;
+                $failureCount++;
+                $errorMessages[] = $result;
+            } elseif (strpos($result, '✓') !== false) {
+                $successCount++;
             }
         }
+
+        // If there are errors, return detailed information
+        if ($hasErrors) {
+            return [
+                'success' => false,
+                'successCount' => $successCount,
+                'failureCount' => $failureCount,
+                'results' => $results,
+                'errors' => $errorMessages
+            ];
+        }
+
+        return [
+            'success' => true,
+            'successCount' => $successCount,
+            'results' => $results
+        ];
     }
 
     /**

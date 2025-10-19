@@ -37,11 +37,32 @@ class MigrationController {
         // Clear migrations cache to reflect changes
         AdminMiddleware::clearMigrationsCache();
 
+        // Check if there are any failures
+        $hasErrors = false;
+        $successCount = 0;
+        $errorCount = 0;
+
+        foreach ($results as $result) {
+            if (strpos($result, '✗') !== false) {
+                $hasErrors = true;
+                $errorCount++;
+            } elseif (strpos($result, '✓') !== false) {
+                $successCount++;
+            }
+        }
+
         if (is_htmx()) {
-            // Return HTMX response
-            $html = '<div class="alert alert-success">';
+            // Return HTMX response with appropriate alert type
+            $alertClass = $hasErrors ? 'alert-warning' : 'alert-success';
+            $html = '<div class="alert ' . $alertClass . '">';
+
+            if ($successCount > 0 || $errorCount > 0) {
+                $html .= '<h4>Migration Results: ' . $successCount . ' succeeded, ' . $errorCount . ' failed</h4>';
+            }
+
             foreach ($results as $result) {
-                $html .= '<p>' . e($result) . '</p>';
+                $resultClass = strpos($result, '✗') !== false ? 'text-danger' : '';
+                $html .= '<p class="' . $resultClass . '">' . e($result) . '</p>';
             }
             $html .= '</div>';
 
@@ -49,7 +70,14 @@ class MigrationController {
             exit;
         }
 
-        flash('success', implode('<br>', $results));
+        $flashType = $hasErrors ? 'warning' : 'success';
+        $message = '';
+        if ($successCount > 0 || $errorCount > 0) {
+            $message = '<strong>Migration Results: ' . $successCount . ' succeeded, ' . $errorCount . ' failed</strong><br>';
+        }
+        $message .= implode('<br>', $results);
+
+        flash($flashType, $message);
         redirect(url('/admin/migrations'));
     }
 
@@ -65,10 +93,31 @@ class MigrationController {
         // Clear migrations cache to reflect changes
         AdminMiddleware::clearMigrationsCache();
 
+        // Check if there are any failures
+        $hasErrors = false;
+        $successCount = 0;
+        $errorCount = 0;
+
+        foreach ($results as $result) {
+            if (strpos($result, '✗') !== false) {
+                $hasErrors = true;
+                $errorCount++;
+            } elseif (strpos($result, '✓') !== false) {
+                $successCount++;
+            }
+        }
+
         if (is_htmx()) {
-            $html = '<div class="alert alert-warning">';
+            $alertClass = $hasErrors ? 'alert-danger' : 'alert-warning';
+            $html = '<div class="alert ' . $alertClass . '">';
+
+            if ($successCount > 0 || $errorCount > 0) {
+                $html .= '<h4>Rollback Results: ' . $successCount . ' succeeded, ' . $errorCount . ' failed</h4>';
+            }
+
             foreach ($results as $result) {
-                $html .= '<p>' . e($result) . '</p>';
+                $resultClass = strpos($result, '✗') !== false ? 'text-danger' : '';
+                $html .= '<p class="' . $resultClass . '">' . e($result) . '</p>';
             }
             $html .= '</div>';
 
@@ -76,7 +125,14 @@ class MigrationController {
             exit;
         }
 
-        flash('warning', implode('<br>', $results));
+        $flashType = $hasErrors ? 'danger' : 'warning';
+        $message = '';
+        if ($successCount > 0 || $errorCount > 0) {
+            $message = '<strong>Rollback Results: ' . $successCount . ' succeeded, ' . $errorCount . ' failed</strong><br>';
+        }
+        $message .= implode('<br>', $results);
+
+        flash($flashType, $message);
         redirect(url('/admin/migrations'));
     }
 
@@ -92,10 +148,31 @@ class MigrationController {
         // Clear migrations cache to reflect changes
         AdminMiddleware::clearMigrationsCache();
 
+        // Check if there are any failures
+        $hasErrors = false;
+        $successCount = 0;
+        $errorCount = 0;
+
+        foreach ($results as $result) {
+            if (strpos($result, '✗') !== false) {
+                $hasErrors = true;
+                $errorCount++;
+            } elseif (strpos($result, '✓') !== false) {
+                $successCount++;
+            }
+        }
+
         if (is_htmx()) {
-            $html = '<div class="alert alert-danger">';
+            $alertClass = $hasErrors ? 'alert-danger' : 'alert-warning';
+            $html = '<div class="alert ' . $alertClass . '">';
+
+            if ($successCount > 0 || $errorCount > 0) {
+                $html .= '<h4>Reset Results: ' . $successCount . ' succeeded, ' . $errorCount . ' failed</h4>';
+            }
+
             foreach ($results as $result) {
-                $html .= '<p>' . e($result) . '</p>';
+                $resultClass = strpos($result, '✗') !== false ? 'text-danger' : '';
+                $html .= '<p class="' . $resultClass . '">' . e($result) . '</p>';
             }
             $html .= '</div>';
 
@@ -103,7 +180,14 @@ class MigrationController {
             exit;
         }
 
-        flash('danger', implode('<br>', $results));
+        $flashType = $hasErrors ? 'danger' : 'info';
+        $message = '';
+        if ($successCount > 0 || $errorCount > 0) {
+            $message = '<strong>Reset Results: ' . $successCount . ' succeeded, ' . $errorCount . ' failed</strong><br>';
+        }
+        $message .= implode('<br>', $results);
+
+        flash($flashType, $message);
         redirect(url('/admin/migrations'));
     }
 

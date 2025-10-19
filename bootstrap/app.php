@@ -112,7 +112,12 @@ set_exception_handler(function($exception) use ($env) {
 });
 
 // 5. Set timezone
-date_default_timezone_set($env['app']['timezone'] ?? 'UTC');
+$timezone = $env['app']['timezone'] ?? 'UTC';
+// Ensure timezone is not empty
+if (empty($timezone)) {
+    $timezone = 'UTC';
+}
+date_default_timezone_set($timezone);
 
 // 6. Start Session
 session_start([

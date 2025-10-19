@@ -2,7 +2,7 @@
 // Ensure step is a string for proper comparison
 // Default to '1' if not set or invalid
 $currentStep = isset($step) ? (string)$step : '1';
-if (!in_array($currentStep, ['1', '2'])) {
+if (!in_array($currentStep, ['1', '2', '3'])) {
     $currentStep = '1';
 }
 $errors = $errors ?? [];
@@ -12,25 +12,50 @@ $old = $old ?? [];
 <div class="setup-progress">
     <div class="progress-step <?= $currentStep === '1' ? 'active' : ($currentStep > '1' ? 'completed' : '') ?>">
         <div class="progress-circle">1</div>
-        <span class="progress-label">Database & Admin</span>
+        <span class="progress-label">Database Setup</span>
     </div>
     <div class="progress-step <?= $currentStep === '2' ? 'active' : ($currentStep > '2' ? 'completed' : '') ?>">
         <div class="progress-circle">2</div>
+        <span class="progress-label">Admin Account</span>
+    </div>
+    <div class="progress-step <?= $currentStep === '3' ? 'active' : ($currentStep > '3' ? 'completed' : '') ?>">
+        <div class="progress-circle">3</div>
         <span class="progress-label">Site Settings</span>
     </div>
 </div>
 
 <?php if ($currentStep === '1'): ?>
-    <!-- Step 1: Database & Admin Account -->
+    <!-- Step 1: Database Setup -->
     <form method="POST" action="<?= url('/setup/process') ?>" class="setup-content">
         <input type="hidden" name="step" value="1">
         <input type="hidden" name="db_driver" value="mysql">
 
-        <h2 style="margin-bottom: 1.5rem;">Database & Admin Account</h2>
+        <h2 style="margin-bottom: 1.5rem;">Database Configuration</h2>
 
         <?php if (isset($errors['general'])): ?>
             <div class="alert alert-danger">
                 <?= e($errors['general']) ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if (isset($_SESSION['migration_errors']) && !$_SESSION['migration_errors']['success']): ?>
+            <div class="alert alert-danger">
+                <h4>Database Migration Details</h4>
+                <p><strong><?= $_SESSION['migration_errors']['successCount'] ?> succeeded, <?= $_SESSION['migration_errors']['failureCount'] ?> failed</strong></p>
+                <div class="migration-details">
+                    <?php foreach ($_SESSION['migration_errors']['results'] as $result): ?>
+                        <p class="<?= strpos($result, '✗') !== false ? 'text-danger' : 'text-success' ?>">
+                            <?= e($result) ?>
+                        </p>
+                    <?php endforeach; ?>
+                </div>
+                <p class="alert-help">Please fix these issues:</p>
+                <ul class="alert-help">
+                    <li>Check database user permissions (CREATE TABLE required)</li>
+                    <li>Verify database exists and is accessible</li>
+                    <li>Ensure no conflicting tables exist</li>
+                    <li>Check MySQL/MariaDB version compatibility</li>
+                </ul>
             </div>
         <?php endif; ?>
 
@@ -111,12 +136,30 @@ $old = $old ?? [];
             <div class="help-text">Leave blank if your database has no password</div>
         </div>
 
-        <hr style="margin: 2rem 0; border: none; border-top: 1px solid #e9ecef;">
+        <div class="setup-actions">
+            <div></div>
+            <button type="submit" class="btn btn-primary">
+                Test Connection & Run Migrations →
+            </button>
+        </div>
+    </form>
 
-        <!-- Admin Account -->
-        <h3 style="margin-bottom: 1rem;">Admin Account</h3>
+<?php elseif ($currentStep === '2'): ?>
+    <!-- Step 2: Admin Account -->
+    <form method="POST" action="<?= url('/setup/process') ?>" class="setup-content">
+        <input type="hidden" name="step" value="2">
 
-        <div class="form-group" x-data="{ adminOption: 'custom' }">
+        <h2 style="margin-bottom: 1.5rem;">Admin Account Setup</h2>
+
+        <?php if (isset($errors['general'])): ?>
+            <div class="alert alert-danger">
+                <?= e($errors['general']) ?>
+            </div>
+        <?php endif; ?>
+
+        <p style="margin-bottom: 1.5rem;">Choose how you want to set up the administrator account for your CMS.</p>
+
+        <div class="form-group" x-data="{ adminOption: '<?= e($old['admin_option'] ?? 'custom') ?>' }">
             <div style="margin-bottom: 1rem;">
                 <label style="display: flex; align-items: center; cursor: pointer; margin-bottom: 0.5rem;">
                     <input
@@ -150,11 +193,15 @@ $old = $old ?? [];
             </div>
 
             <div x-show="adminOption === 'default'" x-transition style="margin-top: 1rem;">
-                <div class="help-text">You can change the default credentials after logging in.</div>
+                <div class="alert alert-info">
+                    <strong>Important:</strong> You should change these default credentials immediately after logging in for security reasons.
+                </div>
             </div>
 
             <div x-show="adminOption === 'skip'" x-transition style="margin-top: 1rem;">
-                <div class="help-text">Choose this if you're reconfiguring and your database already has admin users.</div>
+                <div class="alert alert-info">
+                    Choose this option if you're reconfiguring the application and your database already contains admin users from a previous installation.
+                </div>
             </div>
 
             <div x-show="adminOption === 'custom'" x-transition style="margin-top: 1.5rem;">
@@ -220,17 +267,19 @@ $old = $old ?? [];
         </div>
 
         <div class="setup-actions">
-            <div></div>
+            <a href="<?= url('/setup?step=1') ?>" class="btn btn-secondary">
+                ← Back
+            </a>
             <button type="submit" class="btn btn-primary">
                 Next: Site Settings →
             </button>
         </div>
     </form>
 
-<?php elseif ($currentStep === '2'): ?>
-    <!-- Step 2: Site Settings -->
+<?php elseif ($currentStep === '3'): ?>
+    <!-- Step 3: Site Settings -->
     <form method="POST" action="<?= url('/setup/process') ?>" class="setup-content">
-        <input type="hidden" name="step" value="2">
+        <input type="hidden" name="step" value="3">
 
         <h2 style="margin-bottom: 1.5rem;">Site Settings</h2>
 
@@ -325,15 +374,15 @@ $old = $old ?? [];
         </div>
 
         <div class="alert alert-info">
-            <strong>Almost done!</strong> After clicking "Complete Setup", we'll create your configuration file and publish your theme assets automatically.
+            <strong>Final step!</strong> After clicking "Complete Setup", we'll finalize your configuration and you'll be ready to start using your CMS.
         </div>
 
         <div class="setup-actions">
-            <a href="<?= url('/setup?step=1') ?>" class="btn btn-secondary">
+            <a href="<?= url('/setup?step=2') ?>" class="btn btn-secondary">
                 ← Back
             </a>
             <button type="submit" class="btn btn-primary">
-                Complete Setup
+                Complete Setup ✓
             </button>
         </div>
     </form>
