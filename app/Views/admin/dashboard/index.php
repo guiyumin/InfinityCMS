@@ -1,8 +1,4 @@
 <div class="admin-container">
-    <div class="page-header">
-        <h1>Dashboard</h1>
-        <p>Welcome back, <?= e(current_user()['username'] ?? 'Admin') ?>!</p>
-    </div>
 
     <div class="stats-grid">
         <div class="stat-card">

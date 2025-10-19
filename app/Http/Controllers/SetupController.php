@@ -49,7 +49,7 @@ class SetupController {
         // Clear errors and old input after reading them (flash behavior)
         unset($_SESSION['errors'], $_SESSION['old']);
 
-        return view('setup.index', $data, 'setup');
+        return setup_view('index', $data);
     }
 
     /**

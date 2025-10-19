@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $theme->get('title', 'Setup - Infinity CMS') ?></title>
+    <title><?= $title ?? 'Setup - Infinity CMS' ?></title>
 
     <!-- Alpine.js -->
     <script defer src="https://unpkg.com/alpinejs@3.13.5/dist/cdn.min.js"></script>
@@ -267,10 +267,6 @@
             font-size: 0.875rem;
         }
     </style>
-
-    <?php if ($theme->has('head')): ?>
-        <?= $theme->raw('head') ?>
-    <?php endif; ?>
 </head>
 <body>
     <div class="setup-container">
@@ -279,15 +275,11 @@
             <p>Let's get your website up and running</p>
         </div>
 
-        <?= $theme->raw('content') ?>
+        <?= $content ?? '' ?>
 
         <div class="setup-footer">
             Infinity CMS &copy; <?= date('Y') ?>
         </div>
     </div>
-
-    <?php if ($theme->has('scripts')): ?>
-        <?= $theme->raw('scripts') ?>
-    <?php endif; ?>
 </body>
 </html>

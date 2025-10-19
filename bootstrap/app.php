@@ -115,6 +115,12 @@ $app->bind('view', new App\Core\View($env['app']['theme']));
 // Bind admin view
 $app->bind('admin_view', new App\Core\AdminView());
 
+// Bind setup view
+$app->bind('setup_view', new App\Core\SetupView());
+
+// Bind auth view
+$app->bind('auth_view', new App\Core\AuthView());
+
 // 8. Load plugins
 $pluginsPath = __DIR__ . '/../plugins';
 if (is_dir($pluginsPath)) {

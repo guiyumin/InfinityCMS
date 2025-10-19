@@ -40,6 +40,20 @@ function admin_view($template, $data = []) {
 }
 
 /**
+ * Render setup view template
+ */
+function setup_view($template, $data = []) {
+    return app('setup_view')->render($template, $data);
+}
+
+/**
+ * Render auth view template
+ */
+function auth_view($template, $data = []) {
+    return app('auth_view')->render($template, $data);
+}
+
+/**
  * Generate URL
  */
 function url($path = '') {

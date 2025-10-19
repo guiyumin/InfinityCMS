@@ -20,7 +20,7 @@ class AuthController {
             redirect(url('/admin/dashboard'));
         }
 
-        return view('auth.login', [
+        return auth_view('login', [
             'title' => 'Login',
         ]);
     }
