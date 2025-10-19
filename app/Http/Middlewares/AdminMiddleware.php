@@ -24,8 +24,21 @@ class AdminMiddleware {
     public function handle(Request $request) {
         // Check if user is logged in
         if (!is_logged_in()) {
-            redirect(url('/login'));
-            return false;
+            // Check if this is an AJAX request
+            $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+                      strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+
+            if ($isAjax) {
+                // For AJAX requests, return JSON error
+                http_response_code(401);
+                header('Content-Type: application/json');
+                echo json_encode(['error' => 'Authentication required']);
+                exit;
+            } else {
+                // For regular requests, redirect to login
+                redirect(url('/login'));
+                return false;
+            }
         }
 
         // Check for pending migrations with session caching

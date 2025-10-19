@@ -494,10 +494,17 @@ function renderPreview(markdown) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest' // Identify as AJAX request
         },
-        body: 'content=' + encodeURIComponent(markdown)
+        body: 'content=' + encodeURIComponent(markdown),
+        credentials: 'same-origin' // Include cookies for session
     })
     .then(response => {
+        if (response.status === 401) {
+            // User is not authenticated
+            window.location.href = '<?= url('/login') ?>';
+            throw new Error('Authentication required');
+        }
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
@@ -508,7 +515,9 @@ function renderPreview(markdown) {
     })
     .catch(error => {
         console.error('Preview error:', error);
-        previewElement.innerHTML = '<p style="color: #ef4444;">Error loading preview. Please try again.</p>';
+        if (error.message !== 'Authentication required') {
+            previewElement.innerHTML = '<p style="color: #ef4444;">Error loading preview. Please try again.</p>';
+        }
     });
 }
 

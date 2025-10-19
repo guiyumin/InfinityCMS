@@ -253,7 +253,11 @@ class PostController {
      * @return void
      */
     public function preview() {
+        // Get content from POST request
         $content = request()->post('content', '');
+
+        // Set proper content type
+        header('Content-Type: text/html; charset=UTF-8');
 
         if (empty($content)) {
             echo '<p style="color: #6b7280;">Nothing to preview</p>';
