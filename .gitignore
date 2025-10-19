@@ -28,7 +28,6 @@ package-lock.json
 yarn.lock
 
 # IDE & Editor Files
-.vscode/
 .idea/
 *.sublime-project
 *.sublime-workspace
