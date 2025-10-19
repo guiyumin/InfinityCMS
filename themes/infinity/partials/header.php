@@ -25,7 +25,7 @@
                     <li><a href="<?= $theme->url('/blog') ?>">Blog</a></li>
                     <li><a href="<?= $theme->url('/contact') ?>">Contact</a></li>
                     <?php if ($theme->isLoggedIn()): ?>
-                        <li><a href="<?= $theme->url('/admin') ?>">Dashboard</a></li>
+                        <li><a href="<?= $theme->url('/admin/dashboard') ?>">Dashboard</a></li>
                         <li><a href="<?= $theme->url('/logout') ?>">Logout</a></li>
                     <?php else: ?>
                         <li><a href="<?= $theme->url('/login') ?>">Login</a></li>
