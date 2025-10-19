@@ -1,8 +1,33 @@
 # Infinity CMS Security Architecture
 
+## Overview
+
+This document describes the comprehensive security features and best practices implemented in Infinity CMS to protect against common web vulnerabilities and ensure secure operation.
+
+## Core Security Features
+
+### Authentication & Authorization
+- **Session-based authentication** with secure session handling
+- **Password hashing** using bcrypt with configurable cost factor
+- **CSRF protection** on all forms and state-changing operations
+- **Middleware-based route protection** for admin areas
+- **HTTPOnly cookies** to prevent XSS attacks on session tokens
+
+### Input Validation & Sanitization
+- **Automatic HTML escaping** in templates by default
+- **Input validation** on all user-submitted data
+- **SQL injection prevention** through parameterized queries
+- **Path traversal protection** in file operations
+
+### Security Headers
+- **Content Security Policy (CSP)** support
+- **X-Frame-Options** to prevent clickjacking
+- **X-Content-Type-Options** to prevent MIME sniffing
+- **Strict-Transport-Security** for HTTPS enforcement
+
 ## Theme Security Overhaul - Implementation Summary
 
-This document describes the comprehensive security improvements implemented in Infinity CMS to protect against common vulnerabilities in theme templates.
+This section describes the comprehensive security improvements implemented in theme templates.
 
 ---
 
@@ -240,9 +265,54 @@ view('test', ['title' => '<script>alert("XSS")</script>']);
 
 ---
 
+## Security Configuration
+
+### Production Security Checklist
+
+Before deploying to production, ensure:
+
+1. **Application Settings**
+   - [ ] Set `debug => false` in config.php
+   - [ ] Use strong, unique security keys and salts
+   - [ ] Enable HTTPS and set `force_https => true`
+   - [ ] Configure proper session settings
+
+2. **File Permissions**
+   - [ ] Set config.php to 640 or 600
+   - [ ] Set storage directories to 755 (or 777 if required)
+   - [ ] Ensure .htaccess files are present and configured
+
+3. **Database Security**
+   - [ ] Use strong database passwords
+   - [ ] Limit database user privileges
+   - [ ] Enable SSL for remote database connections
+
+4. **Server Configuration**
+   - [ ] Keep PHP and server software updated
+   - [ ] Disable unnecessary PHP functions
+   - [ ] Configure proper error logging
+   - [ ] Set up regular backups
+
+### Security Best Practices for Developers
+
+1. **Never trust user input** - Always validate and sanitize
+2. **Use prepared statements** for all database queries
+3. **Escape output** when displaying user-generated content
+4. **Implement rate limiting** for sensitive operations
+5. **Keep dependencies updated** regularly
+6. **Use HTTPS everywhere** in production
+7. **Implement proper logging** for security events
+8. **Regular security audits** of custom code
+
 ## Reporting Security Issues
 
 If you discover a security vulnerability in Infinity CMS, please report it to the maintainers immediately. Do not disclose security issues publicly until a fix is available.
+
+For security reports, please:
+1. Describe the vulnerability in detail
+2. Provide steps to reproduce
+3. Include potential impact assessment
+4. Suggest a fix if possible
 
 ---
 
@@ -260,6 +330,7 @@ If you discover a security vulnerability in Infinity CMS, please report it to th
 
 ## For More Information
 
-- [Theme Development Guide](docs/theme-development.md)
-- [Security Best Practices](docs/security-best-practices.md)
-- [API Reference](docs/api-reference.md)
+- [Theme Development Guide](THEME_DEVELOPMENT.md)
+- [Development Guide](DEVELOPMENT.md)
+- [API Reference](API.md)
+- [Configuration Guide](CONFIGURATION.md)

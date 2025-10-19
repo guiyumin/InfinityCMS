@@ -230,9 +230,26 @@ is_logged_in();
 flash('success', 'Post created!');
 ```
 
+## Documentation
+
+### Core Documentation
+- [API Documentation](docs/API.md) - Complete API reference with examples
+- [Development Guide](docs/DEVELOPMENT.md) - Comprehensive development setup and best practices
+- [Plugin Development](docs/PLUGIN_DEVELOPMENT.md) - Create custom plugins to extend functionality
+- [Theme Development](docs/THEME_DEVELOPMENT.md) - Build beautiful, responsive themes
+- [Security Guidelines](docs/SECURITY.md) - Security best practices and guidelines
+- [Infrastructure](docs/INFRASTRUCTURE.md) - Server setup and configuration
+- [Deployment](docs/DEPLOYMENT.md) - Deployment strategies and guides
+
+### Quick Links
+- **For Users**: See the [Installation](#installation) section to get started
+- **For Developers**: Check out our [Development Guide](docs/DEVELOPMENT.md)
+- **For Theme Authors**: Read the [Theme Development Guide](docs/THEME_DEVELOPMENT.md)
+- **For Plugin Authors**: Explore the [Plugin Development Guide](docs/PLUGIN_DEVELOPMENT.md)
+
 ## License
 
-MIT License
+[GPL V2](LICENSE)
 
 ## Contributing
 

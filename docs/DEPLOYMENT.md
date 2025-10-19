@@ -200,16 +200,21 @@ infinity-cms/
 ├── app/                ← Application code
 │   ├── Core/           ← Framework core
 │   ├── Http/           ← Controllers & Middleware
-│   └── Views/          ← Admin views
+│   └── Models/         ← Data models
 ├── themes/             ← Public themes
 │   └── infinity/       ← Default theme
+├── plugins/            ← Plugin directory
+│   ├── hello-world/    ← Example plugin
+│   └── sitemap/        ← Sitemap generator
 ├── database/           ← Database & migrations
 │   └── migrations/     ← Migration files
 ├── storage/            ← Writable storage (777)
 │   ├── cache/
 │   ├── logs/
 │   └── uploads/
+├── docs/               ← Documentation
 ├── config/             ← Configuration files
+│   └── routes.php      ← Route definitions
 ├── bootstrap/          ← Application bootstrap
 └── config.php         ← Environment config (SECURE THIS!)
 ```
@@ -351,10 +356,12 @@ gunzip < backups/db-YYYYMMDD.sql.gz | mysql -u your_username -p your_database
 
 ## Support & Documentation
 
-- **Documentation:** See `docs/` folder
-- **Security Guide:** `docs/SECURITY.md`
-- **Admin Separation:** `docs/ADMIN-SEPARATION.md`
-- **Infrastructure:** `docs/INFRASTRUCTURE.md`
+- **Documentation:** See [Documentation Overview](../README.md#documentation)
+- **Security Guide:** [SECURITY.md](SECURITY.md)
+- **Infrastructure:** [INFRASTRUCTURE.md](INFRASTRUCTURE.md)
+- **API Reference:** [API.md](API.md)
+- **Development Guide:** [DEVELOPMENT.md](DEVELOPMENT.md)
+- **Configuration Guide:** [CONFIGURATION.md](CONFIGURATION.md)
 
 ---
 
@@ -403,8 +410,8 @@ opcache.revalidate_freq=2
 | **Admin URL**        | `/admin/dashboard`  |
 | **Login URL**        | `/login`            |
 | **Migrations URL**   | `/admin/migrations` |
-| **Default Username** | `admin`             |
-| **Default Password** | `admin123`          |
+| **Default Username** | Set during setup    |
+| **Default Password** | Set during setup    |
 | **Database Type**    | MySQL 5.7+          |
 | **Document Root**    | `public/`           |
 | **Upload Directory** | `storage/uploads/`  |
