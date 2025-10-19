@@ -78,12 +78,6 @@ $router->group(['prefix' => '/admin', 'middleware' => 'admin'], function($router
     $router->post('/migrations/rollback', 'Admin/MigrationController@rollback');
     $router->post('/migrations/reset', 'Admin/MigrationController@reset');
     $router->get('/migrations/status', 'Admin/MigrationController@status');
-
-    // Asset Management
-    $router->get('/assets', 'Admin/AssetsController@index');
-    $router->post('/assets/publish', 'Admin/AssetsController@publish');
-    $router->post('/assets/publish-all', 'Admin/AssetsController@publishAll');
-    $router->post('/assets/clean', 'Admin/AssetsController@clean');
 });
 
 // ==========================================

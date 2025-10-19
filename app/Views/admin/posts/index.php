@@ -10,10 +10,11 @@
         </a>
     </div>
 
-    <?php if (session()->has('success')): ?>
+    <?php if (isset($_SESSION['success']) && $_SESSION['success']): ?>
         <div class="alert alert-success">
-            <?= session()->get('success') ?>
+            <?= $_SESSION['success'] ?>
         </div>
+        <?php unset($_SESSION['success']); ?>
     <?php endif; ?>
 
     <div class="table-container">

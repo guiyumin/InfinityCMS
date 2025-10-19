@@ -10,14 +10,15 @@
         </a>
     </div>
 
-    <?php if (session()->has('errors')): ?>
+    <?php if (isset($_SESSION['errors']) && $_SESSION['errors']): ?>
         <div class="alert alert-error">
             <ul>
-                <?php foreach (session()->get('errors') as $error): ?>
+                <?php foreach ($_SESSION['errors'] as $error): ?>
                     <li><?= $error ?></li>
                 <?php endforeach; ?>
             </ul>
         </div>
+        <?php unset($_SESSION['errors']); ?>
     <?php endif; ?>
 
     <div class="form-container">
