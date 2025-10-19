@@ -49,31 +49,31 @@ $router->get('/api/posts/latest', function() {
 $router->group(['prefix' => '/admin', 'middleware' => 'admin'], function($router) {
 
     // Dashboard
-    $router->get('/dashboard', 'Admin\DashboardController@index');
+    $router->get('/dashboard', 'Admin/DashboardController@index');
 
     // Posts management
-    $router->get('/posts', 'Admin\PostController@index');
-    $router->get('/posts/create', 'Admin\PostController@create');
-    $router->post('/posts', 'Admin\PostController@store');
-    $router->get('/posts/{id}/edit', 'Admin\PostController@edit');
-    $router->post('/posts/{id}', 'Admin\PostController@update');
-    $router->delete('/posts/{id}', 'Admin\PostController@destroy');
+    $router->get('/posts', 'Admin/PostController@index');
+    $router->get('/posts/create', 'Admin/PostController@create');
+    $router->post('/posts', 'Admin/PostController@store');
+    $router->get('/posts/{id}/edit', 'Admin/PostController@edit');
+    $router->post('/posts/{id}', 'Admin/PostController@update');
+    $router->delete('/posts/{id}', 'Admin/PostController@destroy');
 
     // HTMX endpoints for admin
-    $router->get('/stats', 'Admin\DashboardController@stats');
+    $router->get('/stats', 'Admin/DashboardController@stats');
 
     // Database Migrations
-    $router->get('/migrations', 'Admin\MigrationController@index');
-    $router->post('/migrations/run', 'Admin\MigrationController@run');
-    $router->post('/migrations/rollback', 'Admin\MigrationController@rollback');
-    $router->post('/migrations/reset', 'Admin\MigrationController@reset');
-    $router->get('/migrations/status', 'Admin\MigrationController@status');
+    $router->get('/migrations', 'Admin/MigrationController@index');
+    $router->post('/migrations/run', 'Admin/MigrationController@run');
+    $router->post('/migrations/rollback', 'Admin/MigrationController@rollback');
+    $router->post('/migrations/reset', 'Admin/MigrationController@reset');
+    $router->get('/migrations/status', 'Admin/MigrationController@status');
 
     // Asset Management
-    $router->get('/assets', 'Admin\AssetsController@index');
-    $router->post('/assets/publish', 'Admin\AssetsController@publish');
-    $router->post('/assets/publish-all', 'Admin\AssetsController@publishAll');
-    $router->post('/assets/clean', 'Admin\AssetsController@clean');
+    $router->get('/assets', 'Admin/AssetsController@index');
+    $router->post('/assets/publish', 'Admin/AssetsController@publish');
+    $router->post('/assets/publish-all', 'Admin/AssetsController@publishAll');
+    $router->post('/assets/clean', 'Admin/AssetsController@clean');
 });
 
 // ==========================================

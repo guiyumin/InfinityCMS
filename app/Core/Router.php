@@ -288,8 +288,12 @@ class Router {
     protected function executeControllerAction($action, array $params = []) {
         list($controller, $method) = explode('@', $action);
 
+        // Convert forward slashes to backslashes for namespaces
+        $controller = str_replace('/', '\\', $controller);
+
         // Support both full namespace and short name
-        if (strpos($controller, '\\') === false) {
+        // Check if it starts with App\ to determine if it's already fully qualified
+        if (strpos($controller, 'App\\') !== 0) {
             $controller = 'App\\Http\\Controllers\\' . $controller;
         }
 
