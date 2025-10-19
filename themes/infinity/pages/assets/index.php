@@ -38,7 +38,7 @@
         <h3>What are Assets?</h3>
         <p>
             Theme assets (CSS, JavaScript, images, etc.) need to be published from <code>themes/[theme]/assets/</code>
-            to <code>public/themes/[theme]/assets/</code> to be accessible via the web.
+            to <code>public/assets/themes/[theme]/</code> to be accessible via the web.
         </p>
         <p>
             This is necessary because most web hosts don't allow direct access to files outside the public folder.

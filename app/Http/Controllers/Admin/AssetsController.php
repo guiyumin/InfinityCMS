@@ -28,7 +28,7 @@ class AssetsController {
                 $themeDir = $themesPath . '/' . $item;
                 if (is_dir($themeDir)) {
                     $assetsPath = $themeDir . '/assets';
-                    $publishedPath = base_path("public/themes/{$item}/assets");
+                    $publishedPath = base_path("public/assets/themes/{$item}");
 
                     $themes[] = [
                         'name' => $item,
@@ -42,7 +42,7 @@ class AssetsController {
 
         // Check admin assets status
         $adminAssetsPath = base_path('app/Views/admin/assets');
-        $adminPublishedPath = base_path('public/admin/assets');
+        $adminPublishedPath = base_path('public/assets/admin');
 
         $data = [
             'title' => 'Asset Management',

@@ -69,7 +69,17 @@ function url($path = '') {
         // Auto-detect base URL from current request
         $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
         $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-        $base = $protocol . '://' . $host;
+
+        // Get the base path from SCRIPT_NAME, excluding /public/index.php
+        $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+        $basePath = '';
+
+        if (str_contains($scriptName, '/public/')) {
+            // Extract the base path before /public/
+            $basePath = substr($scriptName, 0, strpos($scriptName, '/public/'));
+        }
+
+        $base = $protocol . '://' . $host . $basePath;
     }
 
     return rtrim($base, '/') . '/' . ltrim($path, '/');
@@ -169,7 +179,7 @@ function asset($path) {
  */
 function theme_asset($path) {
     $theme = config('app.theme', 'default');
-    return url("themes/$theme/assets/" . ltrim($path, '/'));
+    return url("assets/themes/$theme/" . ltrim($path, '/'));
 }
 
 /**

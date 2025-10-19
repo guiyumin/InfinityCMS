@@ -48,6 +48,10 @@ class Request {
             $uri = substr($uri, 0, $pos);
         }
 
+        // Remove /public/ prefix if present (for shared hosting setups)
+        // This handles cases where .htaccess rewrites requests to /public/
+        $uri = preg_replace('#^/public/#', '/', $uri);
+
         return '/' . trim($uri, '/');
     }
 

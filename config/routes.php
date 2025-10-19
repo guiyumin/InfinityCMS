@@ -48,6 +48,11 @@ $router->get('/api/posts/latest', function() {
 
 $router->group(['prefix' => '/admin', 'middleware' => 'admin'], function($router) {
 
+    // Admin root - redirect to dashboard
+    $router->get('', function() {
+        redirect(url('/admin/dashboard'));
+    });
+
     // Dashboard
     $router->get('/dashboard', 'Admin/DashboardController@index');
 

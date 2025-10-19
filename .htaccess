@@ -1,3 +1,25 @@
-RewriteEngine On
-RewriteCond %{REQUEST_URI} !^/public/
-RewriteRule ^(.*)$ public/$1 [L]
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Handle root request - send to public/index.php
+    RewriteRule ^$ public/index.php [L]
+
+    # If the request is already for the public directory, stop here
+    RewriteRule ^public/ - [L]
+
+    # If the requested file/directory doesn't exist in root,
+    # check if it exists in public and serve from there
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ public/$1
+
+    # If it still doesn't exist as a file/dir in public, route to index.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ public/index.php [L,QSA]
+</IfModule>
+
+# Disable directory browsing but allow access to files
+<IfModule mod_autoindex.c>
+    Options -Indexes
+</IfModule>

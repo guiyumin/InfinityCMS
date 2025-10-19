@@ -19,11 +19,11 @@ class AssetPublisher {
         // Determine if publishing admin or theme assets
         if ($theme === 'admin' || $theme === null) {
             $sourcePath = base_path("app/Views/admin/assets");
-            $targetPath = base_path("public/admin/assets");
+            $targetPath = base_path("public/assets/admin");
             $assetType = 'Admin';
         } else {
             $sourcePath = base_path("themes/{$theme}/assets");
-            $targetPath = base_path("public/themes/{$theme}/assets");
+            $targetPath = base_path("public/assets/themes/{$theme}");
             $assetType = "Theme '{$theme}'";
         }
 
@@ -99,18 +99,25 @@ class AssetPublisher {
     }
 
     /**
-     * Clean published assets for a theme
+     * Clean published assets for a theme or admin
      *
-     * @param string $theme Theme name
+     * @param string $theme Theme name or 'admin'
      * @return array Result with success status and message
      */
     public static function clean($theme) {
-        $targetPath = base_path("public/themes/{$theme}/assets");
+        // Determine path based on whether it's admin or theme assets
+        if ($theme === 'admin') {
+            $targetPath = base_path("public/assets/admin");
+            $assetType = 'admin';
+        } else {
+            $targetPath = base_path("public/assets/themes/{$theme}");
+            $assetType = "theme '{$theme}'";
+        }
 
         if (!is_dir($targetPath)) {
             return [
                 'success' => true,
-                'message' => "No published assets found for theme '{$theme}'",
+                'message' => "No published assets found for {$assetType}",
             ];
         }
 
@@ -119,7 +126,7 @@ class AssetPublisher {
 
             return [
                 'success' => true,
-                'message' => "Published assets for theme '{$theme}' removed successfully",
+                'message' => "Published assets for {$assetType} removed successfully",
             ];
         } catch (\Exception $e) {
             return [

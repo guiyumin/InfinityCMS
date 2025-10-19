@@ -211,7 +211,7 @@ class View {
      * @return string
      */
     public function asset($path) {
-        return url("themes/{$this->theme}/assets/" . ltrim($path, '/'));
+        return url("assets/themes/{$this->theme}/" . ltrim($path, '/'));
     }
 
     /**
