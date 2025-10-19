@@ -18,17 +18,13 @@ return [
 
     // 数据库配置
     'database' => [
-        'driver' => 'sqlite',
-        'path' => __DIR__ . '/storage/database.sqlite',
-
-        // MySQL 配置示例（如需使用，请取消注释）
-        // 'driver' => 'mysql',
-        // 'host' => 'localhost',
-        // 'port' => 3306,
-        // 'database' => 'infinity_cms',
-        // 'username' => 'root',
-        // 'password' => '',
-        // 'charset' => 'utf8mb4',
+        'driver' => 'mysql',
+        'host' => 'localhost',
+        'port' => 3306,
+        'database' => 'infinity_cms',
+        'username' => 'root',
+        'password' => '',
+        'charset' => 'utf8mb4',
     ],
 
     // Session 配置

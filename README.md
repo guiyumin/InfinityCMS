@@ -16,12 +16,13 @@ A modern, lightweight CMS built with pure PHP, HTMX, and Alpine.js. No Composer,
 ## Requirements
 
 - PHP 7.4+
-- SQLite or MySQL
+- MySQL 5.7+
 - Apache (with mod_rewrite) or Nginx
 
 ## Installation
 
 1. Clone the repository
+
 ```bash
 git clone <repo-url> infinity-cms
 cd infinity-cms
@@ -29,14 +30,7 @@ cd infinity-cms
 
 2. Set up your web server to point to the `public` directory
 
-3. Create the SQLite database
-```bash
-touch storage/database.sqlite
-```
-
-4. Configure your environment in `.env.php`
-
-5. Visit your site in a browser!
+3. Visit your site in a browser!
 
 ## Directory Structure
 
@@ -64,7 +58,6 @@ cms/
 ├─ config/
 │  └─ routes.php         # Route definitions
 └─ storage/
-   ├─ database.sqlite    # SQLite database
    ├─ cache/             # Cache files
    └─ logs/              # Log files
 ```
@@ -81,19 +74,24 @@ Create a file in `database/migrations/` with format: `XXX_description.php`
 <?php
 // database/migrations/006_add_tags_table.php
 
-function up($db) {
-    $db->execute("
-        CREATE TABLE tags (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name VARCHAR(100) NOT NULL,
-            slug VARCHAR(100) UNIQUE NOT NULL
-        )
-    ");
-}
+return [
+    'up' => function($db) {
+        $db->execute("
+            CREATE TABLE IF NOT EXISTS tags (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(100) NOT NULL,
+                slug VARCHAR(100) UNIQUE NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX idx_slug (slug)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        ");
+    },
 
-function down($db) {
-    $db->execute("DROP TABLE IF EXISTS tags");
-}
+    'down' => function($db) {
+        $db->execute("DROP TABLE IF EXISTS tags");
+    }
+];
 ```
 
 ### Running Migrations
@@ -141,6 +139,7 @@ $hook->addFilter('page_title', function($title) {
 
 1. Create a new directory in `themes/`
 2. Create the structure:
+
 ```
 my-theme/
 ├─ theme.json
@@ -157,6 +156,7 @@ my-theme/
 ```
 
 3. Update `.env.php` to use your theme:
+
 ```php
 'app' => [
     'theme' => 'my-theme', // Default is 'infinity'
@@ -167,14 +167,12 @@ my-theme/
 
 ```html
 <!-- Load content dynamically -->
-<div hx-get="/api/posts/latest" hx-trigger="load">
-    Loading...
-</div>
+<div hx-get="/api/posts/latest" hx-trigger="load">Loading...</div>
 
 <!-- Submit form without page reload -->
 <form hx-post="/api/posts" hx-target="#post-list">
-    <input name="title" required>
-    <button type="submit">Add Post</button>
+  <input name="title" required />
+  <button type="submit">Add Post</button>
 </form>
 ```
 
@@ -183,8 +181,8 @@ my-theme/
 ```html
 <!-- Interactive components -->
 <div x-data="{ open: false }">
-    <button @click="open = !open">Toggle</button>
-    <div x-show="open">Content</div>
+  <button @click="open = !open">Toggle</button>
+  <div x-show="open">Content</div>
 </div>
 ```
 

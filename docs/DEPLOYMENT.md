@@ -51,38 +51,39 @@ chmod 644 .env.php
 ],
 
 'database' => [
-    'driver' => 'sqlite',  // or 'mysql'
-    'database' => __DIR__ . '/database/database.sqlite',
-
-    // For MySQL:
-    // 'host' => 'localhost',
-    // 'database' => 'your_database',
-    // 'username' => 'your_username',
-    // 'password' => 'your_password',
+    'driver' => 'mysql',
+    'host' => 'localhost',
+    'database' => 'your_database',
+    'username' => 'your_username',
+    'password' => 'your_password',
+    'charset' => 'utf8mb4',
 ],
 ```
 
 ### 4. Initialize Database
 
-**Option A: Via Browser (Recommended)**
+**Step 1: Create MySQL Database**
+
+```bash
+# Login to MySQL
+mysql -u root -p
+
+# Create database
+CREATE DATABASE infinity_cms CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+# Create user (optional, for better security)
+CREATE USER 'cms_user'@'localhost' IDENTIFIED BY 'strong_password';
+GRANT ALL PRIVILEGES ON infinity_cms.* TO 'cms_user'@'localhost';
+FLUSH PRIVILEGES;
+exit;
+```
+
+**Step 2: Run Migrations**
 
 1. Visit: `https://your-domain.com/admin/migrations`
 2. Login with credentials
 3. Click "Run Migrations"
-4. Database initialized!
-
-**Option B: Via CLI**
-
-```bash
-# Create empty database file
-touch database/database.sqlite
-chmod 666 database/database.sqlite
-
-# Or for MySQL, create database:
-mysql -u root -p
-CREATE DATABASE infinity_cms;
-exit;
-```
+4. Database tables created!
 
 ### 5. First Login
 
@@ -113,7 +114,7 @@ exit;
 ### Minimum Requirements:
 
 - PHP 7.4 or higher
-- SQLite extension (or MySQL 5.7+)
+- MySQL 5.7+ (or MariaDB 10.2+)
 - Apache with mod_rewrite OR Nginx
 - 128MB RAM minimum
 - 50MB disk space
@@ -121,7 +122,7 @@ exit;
 ### PHP Extensions Required:
 
 - PDO (PHP Data Objects)
-- pdo_sqlite or pdo_mysql
+- pdo_mysql
 - mbstring
 - openssl
 - session
@@ -216,8 +217,8 @@ infinity-cms/
 # Clear cache weekly
 0 3 * * 0 rm -rf /path/to/infinity-cms/storage/cache/*
 
-# Backup database daily
-0 1 * * * cp /path/to/infinity-cms/database/database.sqlite /backups/db-$(date +\%Y\%m\%d).sqlite
+# Backup MySQL database daily
+0 1 * * * mysqldump -u your_username -pyour_password your_database | gzip > /backups/db-$(date +\%Y\%m\%d).sql.gz
 ```
 
 ---
@@ -238,11 +239,15 @@ sudo service apache2 restart
 
 ### Issue: "Database error" or blank page
 
-**Solution:** Check file permissions and database path
+**Solution:** Check MySQL connection and permissions
 
 ```bash
 chmod 777 storage/
-chmod 666 database/database.sqlite  # SQLite only
+
+# Test MySQL connection
+mysql -u your_username -p -h localhost your_database
+
+# Check .env.php has correct MySQL credentials
 ```
 
 ### Issue: "500 Internal Server Error"
@@ -266,9 +271,7 @@ tail -f storage/logs/*.log
 
 ```bash
 # Visit: https://your-domain.com/admin/migrations
-# Or manually:
-sqlite3 database/database.sqlite
-.read database/migrations/002_create_users_table.php
+# Click "Run Migrations" to create all tables including users table
 ```
 
 ---
@@ -284,8 +287,11 @@ tar -czf infinity-cms-backup-$(date +%Y%m%d).tar.gz \
     --exclude='infinity-cms/storage/cache' \
     --exclude='infinity-cms/storage/logs'
 
-# Database only
-cp database/database.sqlite backups/db-$(date +%Y%m%d).sqlite
+# MySQL database backup
+mysqldump -u your_username -p your_database > backups/db-$(date +%Y%m%d).sql
+
+# Or with compression
+mysqldump -u your_username -p your_database | gzip > backups/db-$(date +%Y%m%d).sql.gz
 ```
 
 ### Restore
@@ -294,9 +300,11 @@ cp database/database.sqlite backups/db-$(date +%Y%m%d).sqlite
 # Extract backup
 tar -xzf infinity-cms-backup-YYYYMMDD.tar.gz
 
-# Restore database
-cp backups/db-YYYYMMDD.sqlite database/database.sqlite
-chmod 666 database/database.sqlite
+# Restore MySQL database
+mysql -u your_username -p your_database < backups/db-YYYYMMDD.sql
+
+# Or from compressed backup
+gunzip < backups/db-YYYYMMDD.sql.gz | mysql -u your_username -p your_database
 ```
 
 ---
@@ -305,14 +313,13 @@ chmod 666 database/database.sqlite
 
 ### Update Process
 
-1. Backup current installation
+1. Backup current installation and database
 2. Extract new version to temporary folder
 3. Copy `.env.php` from old to new
-4. Copy `database/` from old to new
-5. Copy `storage/uploads/` from old to new
-6. Replace old files with new
-7. Run new migrations: `/admin/migrations`
-8. Test thoroughly
+4. Copy `storage/uploads/` from old to new
+5. Replace old files with new
+6. Run new migrations: `/admin/migrations`
+7. Test thoroughly
 
 ---
 
@@ -372,7 +379,7 @@ opcache.revalidate_freq=2
 | **Migrations URL**    | `/admin/migrations`        |
 | **Default Username**  | `admin`                    |
 | **Default Password**  | `admin123`                 |
-| **Database Location** | `database/database.sqlite` |
+| **Database Type**     | MySQL 5.7+                 |
 | **Document Root**     | `public/`                  |
 | **Upload Directory**  | `storage/uploads/`         |
 

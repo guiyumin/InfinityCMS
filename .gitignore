@@ -6,9 +6,7 @@
 config.local.php
 
 # Database
-*.sqlite
 *.db
-database/*.sqlite
 database/*.db
 
 # Storage & Uploads

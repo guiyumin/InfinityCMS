@@ -43,13 +43,10 @@ class DB {
      * @return void
      */
     public function connect(array $config) {
-        $driver = $config['driver'] ?? 'sqlite';
+        $driver = $config['driver'] ?? 'mysql';
 
         try {
-            if ($driver === 'sqlite') {
-                $dsn = 'sqlite:' . $config['path'];
-                $this->pdo = new \PDO($dsn);
-            } elseif ($driver === 'mysql') {
+            if ($driver === 'mysql') {
                 $dsn = sprintf(
                     'mysql:host=%s;port=%s;dbname=%s;charset=%s',
                     $config['host'] ?? 'localhost',
@@ -62,6 +59,8 @@ class DB {
                     $config['username'],
                     $config['password']
                 );
+            } else {
+                throw new \Exception("Unsupported database driver: {$driver}");
             }
 
             $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
