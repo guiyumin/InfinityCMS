@@ -17,7 +17,12 @@ $router->get('/blog', 'PostController@index');
 $router->get('/post/{slug}', 'PostController@show');
 
 // Pages
-$router->get('/about', 'PageController@show');
+$router->get('/page/{slug}', 'PageController@show');
+// Special routes for common pages
+$router->get('/about', function() {
+    $controller = new \App\Http\Controllers\PageController();
+    return $controller->show('about');
+});
 $router->get('/contact', 'PageController@contact');
 $router->post('/contact', 'PageController@submitContact');
 
