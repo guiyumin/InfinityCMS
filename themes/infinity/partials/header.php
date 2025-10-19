@@ -22,7 +22,7 @@
                 <ul>
                     <li><a href="<?= $theme->url('/') ?>">Home</a></li>
                     <li><a href="<?= $theme->url('/about') ?>">About</a></li>
-                    <li><a href="<?= $theme->url('/blog') ?>">Blog</a></li>
+                    <li><a href="<?= $theme->url('/posts') ?>">Posts</a></li>
                     <li><a href="<?= $theme->url('/contact') ?>">Contact</a></li>
                     <?php if ($theme->isLoggedIn()): ?>
                         <li><a href="<?= $theme->url('/admin/dashboard') ?>">Dashboard</a></li>
