@@ -1,26 +1,209 @@
 <?php
-$currentStep = $step ?? '1';
+// Ensure step is a string for proper comparison
+// Default to '1' if not set or invalid
+$currentStep = isset($step) ? (string)$step : '1';
+if (!in_array($currentStep, ['1', '2'])) {
+    $currentStep = '1';
+}
 $errors = $errors ?? [];
 $old = $old ?? [];
 ?>
 
 <div class="setup-progress">
-    <div class="progress-step <?= $currentStep == '1' ? 'active' : ($currentStep > '1' ? 'completed' : '') ?>">
+    <div class="progress-step <?= $currentStep === '1' ? 'active' : ($currentStep > '1' ? 'completed' : '') ?>">
         <div class="progress-circle">1</div>
-        <span class="progress-label">Basic Info</span>
-    </div>
-    <div class="progress-step <?= $currentStep == '2' ? 'active' : ($currentStep > '2' ? 'completed' : '') ?>">
-        <div class="progress-circle">2</div>
         <span class="progress-label">Database & Admin</span>
+    </div>
+    <div class="progress-step <?= $currentStep === '2' ? 'active' : ($currentStep > '2' ? 'completed' : '') ?>">
+        <div class="progress-circle">2</div>
+        <span class="progress-label">Site Settings</span>
     </div>
 </div>
 
-<?php if ($currentStep == '1'): ?>
-    <!-- Step 1: Basic Configuration -->
-    <form method="POST" action="<?= url('/setup/process') ?>" class="setup-content">
+<?php if ($currentStep === '1'): ?>
+    <!-- Step 1: Database & Admin Account -->
+    <form method="POST" action="<?= url('/setup/process') ?>" class="setup-content" x-data="{ dbDriver: '<?= $old['db_driver'] ?? 'sqlite' ?>' }">
         <input type="hidden" name="step" value="1">
 
-        <h2 style="margin-bottom: 1.5rem;">Basic Configuration</h2>
+        <h2 style="margin-bottom: 1.5rem;">Database & Admin Account</h2>
+
+        <?php if (isset($errors['general'])): ?>
+            <div class="alert alert-danger">
+                <?= e($errors['general']) ?>
+            </div>
+        <?php endif; ?>
+
+        <!-- Database Type Selection -->
+        <div class="form-group">
+            <label>Choose Database Type</label>
+            <div class="db-options">
+                <label class="db-option" :class="{ 'selected': dbDriver === 'sqlite' }">
+                    <input type="radio" name="db_driver" value="sqlite" x-model="dbDriver" checked>
+                    <div class="db-option-title">SQLite</div>
+                    <div class="db-option-desc">Simple, file-based database (recommended for beginners)</div>
+                </label>
+
+                <label class="db-option" :class="{ 'selected': dbDriver === 'mysql' }">
+                    <input type="radio" name="db_driver" value="mysql" x-model="dbDriver">
+                    <div class="db-option-title">MySQL</div>
+                    <div class="db-option-desc">Traditional database server (for advanced users)</div>
+                </label>
+            </div>
+        </div>
+
+        <!-- MySQL Configuration (only shown if MySQL is selected) -->
+        <div class="mysql-fields" :class="{ 'show': dbDriver === 'mysql' }">
+            <h3 style="margin-bottom: 1rem;">MySQL Configuration</h3>
+
+            <div class="form-group">
+                <label for="db_host">Database Host</label>
+                <input
+                    type="text"
+                    id="db_host"
+                    name="db_host"
+                    value="<?= e($old['db_host'] ?? 'localhost') ?>"
+                    class="<?= isset($errors['db_host']) ? 'input-error' : '' ?>"
+                    placeholder="localhost">
+                <?php if (isset($errors['db_host'])): ?>
+                    <div class="error"><?= e($errors['db_host']) ?></div>
+                <?php endif; ?>
+            </div>
+
+            <div class="form-group">
+                <label for="db_port">Database Port</label>
+                <input
+                    type="text"
+                    id="db_port"
+                    name="db_port"
+                    value="<?= e($old['db_port'] ?? '3306') ?>"
+                    class="<?= isset($errors['db_port']) ? 'input-error' : '' ?>"
+                    placeholder="3306">
+                <?php if (isset($errors['db_port'])): ?>
+                    <div class="error"><?= e($errors['db_port']) ?></div>
+                <?php endif; ?>
+            </div>
+
+            <div class="form-group">
+                <label for="db_name">Database Name</label>
+                <input
+                    type="text"
+                    id="db_name"
+                    name="db_name"
+                    value="<?= e($old['db_name'] ?? '') ?>"
+                    class="<?= isset($errors['db_name']) ? 'input-error' : '' ?>"
+                    placeholder="infinity_cms">
+                <?php if (isset($errors['db_name'])): ?>
+                    <div class="error"><?= e($errors['db_name']) ?></div>
+                <?php endif; ?>
+                <div class="help-text">The database must already exist on your MySQL server</div>
+            </div>
+
+            <div class="form-group">
+                <label for="db_user">Database Username</label>
+                <input
+                    type="text"
+                    id="db_user"
+                    name="db_user"
+                    value="<?= e($old['db_user'] ?? '') ?>"
+                    class="<?= isset($errors['db_user']) ? 'input-error' : '' ?>"
+                    placeholder="root">
+                <?php if (isset($errors['db_user'])): ?>
+                    <div class="error"><?= e($errors['db_user']) ?></div>
+                <?php endif; ?>
+            </div>
+
+            <div class="form-group">
+                <label for="db_pass">Database Password</label>
+                <input
+                    type="password"
+                    id="db_pass"
+                    name="db_pass"
+                    class="<?= isset($errors['db_pass']) ? 'input-error' : '' ?>"
+                    placeholder="Enter database password">
+                <?php if (isset($errors['db_pass'])): ?>
+                    <div class="error"><?= e($errors['db_pass']) ?></div>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <hr style="margin: 2rem 0; border: none; border-top: 1px solid #e9ecef;">
+
+        <!-- Admin Account -->
+        <h3 style="margin-bottom: 1rem;">Create Admin Account</h3>
+
+        <div class="form-group">
+            <label for="admin_username">Username</label>
+            <input
+                type="text"
+                id="admin_username"
+                name="admin_username"
+                value="<?= e($old['admin_username'] ?? '') ?>"
+                class="<?= isset($errors['admin_username']) ? 'input-error' : '' ?>"
+                placeholder="admin"
+                required>
+            <?php if (isset($errors['admin_username'])): ?>
+                <div class="error"><?= e($errors['admin_username']) ?></div>
+            <?php endif; ?>
+        </div>
+
+        <div class="form-group">
+            <label for="admin_email">Email Address</label>
+            <input
+                type="email"
+                id="admin_email"
+                name="admin_email"
+                value="<?= e($old['admin_email'] ?? '') ?>"
+                class="<?= isset($errors['admin_email']) ? 'input-error' : '' ?>"
+                placeholder="admin@example.com"
+                required>
+            <?php if (isset($errors['admin_email'])): ?>
+                <div class="error"><?= e($errors['admin_email']) ?></div>
+            <?php endif; ?>
+        </div>
+
+        <div class="form-group">
+            <label for="admin_password">Password</label>
+            <input
+                type="password"
+                id="admin_password"
+                name="admin_password"
+                class="<?= isset($errors['admin_password']) ? 'input-error' : '' ?>"
+                placeholder="At least 8 characters"
+                required>
+            <?php if (isset($errors['admin_password'])): ?>
+                <div class="error"><?= e($errors['admin_password']) ?></div>
+            <?php endif; ?>
+            <div class="help-text">Use a strong password with at least 8 characters</div>
+        </div>
+
+        <div class="form-group">
+            <label for="admin_password_confirm">Confirm Password</label>
+            <input
+                type="password"
+                id="admin_password_confirm"
+                name="admin_password_confirm"
+                class="<?= isset($errors['admin_password_confirm']) ? 'input-error' : '' ?>"
+                placeholder="Re-enter your password"
+                required>
+            <?php if (isset($errors['admin_password_confirm'])): ?>
+                <div class="error"><?= e($errors['admin_password_confirm']) ?></div>
+            <?php endif; ?>
+        </div>
+
+        <div class="setup-actions">
+            <div></div>
+            <button type="submit" class="btn btn-primary">
+                Next: Site Settings →
+            </button>
+        </div>
+    </form>
+
+<?php elseif ($currentStep === '2'): ?>
+    <!-- Step 2: Site Settings -->
+    <form method="POST" action="<?= url('/setup/process') ?>" class="setup-content">
+        <input type="hidden" name="step" value="2">
+
+        <h2 style="margin-bottom: 1.5rem;">Site Settings</h2>
 
         <?php if (isset($errors['general'])): ?>
             <div class="alert alert-danger">
@@ -112,166 +295,8 @@ $old = $old ?? [];
             <div class="help-text">Choose your site's visual theme</div>
         </div>
 
-        <div class="setup-actions">
-            <div></div>
-            <button type="submit" class="btn btn-primary">
-                Next: Database & Admin →
-            </button>
-        </div>
-    </form>
-
-<?php elseif ($currentStep == '2'): ?>
-    <!-- Step 2: Database & Admin Account -->
-    <form method="POST" action="<?= url('/setup/process') ?>" class="setup-content" x-data="{ dbDriver: '<?= $old['db_driver'] ?? 'sqlite' ?>' }">
-        <input type="hidden" name="step" value="2">
-
-        <h2 style="margin-bottom: 1.5rem;">Database & Admin Account</h2>
-
-        <?php if (isset($errors['general'])): ?>
-            <div class="alert alert-danger">
-                <?= e($errors['general']) ?>
-            </div>
-        <?php endif; ?>
-
-        <!-- Database Type Selection -->
-        <div class="form-group">
-            <label>Choose Database Type</label>
-            <div class="db-options">
-                <label class="db-option" :class="{ 'selected': dbDriver === 'sqlite' }">
-                    <input type="radio" name="db_driver" value="sqlite" x-model="dbDriver" checked>
-                    <div class="db-option-title">SQLite</div>
-                    <div class="db-option-desc">Simple, file-based database (recommended for beginners)</div>
-                </label>
-
-                <label class="db-option" :class="{ 'selected': dbDriver === 'mysql' }">
-                    <input type="radio" name="db_driver" value="mysql" x-model="dbDriver">
-                    <div class="db-option-title">MySQL</div>
-                    <div class="db-option-desc">Traditional database server (for advanced users)</div>
-                </label>
-            </div>
-        </div>
-
-        <!-- MySQL Configuration (only shown if MySQL is selected) -->
-        <div class="mysql-fields" :class="{ 'show': dbDriver === 'mysql' }">
-            <h3 style="margin-bottom: 1rem;">MySQL Configuration</h3>
-
-            <div class="form-group">
-                <label for="db_host">Database Host</label>
-                <input
-                    type="text"
-                    id="db_host"
-                    name="db_host"
-                    value="<?= e($old['db_host'] ?? 'localhost') ?>"
-                    placeholder="localhost">
-            </div>
-
-            <div class="form-group">
-                <label for="db_port">Database Port</label>
-                <input
-                    type="text"
-                    id="db_port"
-                    name="db_port"
-                    value="<?= e($old['db_port'] ?? '3306') ?>"
-                    placeholder="3306">
-            </div>
-
-            <div class="form-group">
-                <label for="db_name">Database Name</label>
-                <input
-                    type="text"
-                    id="db_name"
-                    name="db_name"
-                    value="<?= e($old['db_name'] ?? '') ?>"
-                    placeholder="infinity_cms">
-            </div>
-
-            <div class="form-group">
-                <label for="db_user">Database Username</label>
-                <input
-                    type="text"
-                    id="db_user"
-                    name="db_user"
-                    value="<?= e($old['db_user'] ?? '') ?>"
-                    placeholder="root">
-            </div>
-
-            <div class="form-group">
-                <label for="db_pass">Database Password</label>
-                <input
-                    type="password"
-                    id="db_pass"
-                    name="db_pass"
-                    placeholder="Enter database password">
-            </div>
-        </div>
-
-        <hr style="margin: 2rem 0; border: none; border-top: 1px solid #e9ecef;">
-
-        <!-- Admin Account -->
-        <h3 style="margin-bottom: 1rem;">Create Admin Account</h3>
-
-        <div class="form-group">
-            <label for="admin_username">Username</label>
-            <input
-                type="text"
-                id="admin_username"
-                name="admin_username"
-                value="<?= e($old['admin_username'] ?? '') ?>"
-                class="<?= isset($errors['admin_username']) ? 'input-error' : '' ?>"
-                placeholder="admin"
-                required>
-            <?php if (isset($errors['admin_username'])): ?>
-                <div class="error"><?= e($errors['admin_username']) ?></div>
-            <?php endif; ?>
-        </div>
-
-        <div class="form-group">
-            <label for="admin_email">Email Address</label>
-            <input
-                type="email"
-                id="admin_email"
-                name="admin_email"
-                value="<?= e($old['admin_email'] ?? '') ?>"
-                class="<?= isset($errors['admin_email']) ? 'input-error' : '' ?>"
-                placeholder="admin@example.com"
-                required>
-            <?php if (isset($errors['admin_email'])): ?>
-                <div class="error"><?= e($errors['admin_email']) ?></div>
-            <?php endif; ?>
-        </div>
-
-        <div class="form-group">
-            <label for="admin_password">Password</label>
-            <input
-                type="password"
-                id="admin_password"
-                name="admin_password"
-                class="<?= isset($errors['admin_password']) ? 'input-error' : '' ?>"
-                placeholder="At least 8 characters"
-                required>
-            <?php if (isset($errors['admin_password'])): ?>
-                <div class="error"><?= e($errors['admin_password']) ?></div>
-            <?php endif; ?>
-            <div class="help-text">Use a strong password with at least 8 characters</div>
-        </div>
-
-        <div class="form-group">
-            <label for="admin_password_confirm">Confirm Password</label>
-            <input
-                type="password"
-                id="admin_password_confirm"
-                name="admin_password_confirm"
-                class="<?= isset($errors['admin_password_confirm']) ? 'input-error' : '' ?>"
-                placeholder="Re-enter your password"
-                required>
-            <?php if (isset($errors['admin_password_confirm'])): ?>
-                <div class="error"><?= e($errors['admin_password_confirm']) ?></div>
-            <?php endif; ?>
-        </div>
-
         <div class="alert alert-info">
-            <strong>Almost done!</strong> After clicking "Complete Setup", we'll create your configuration file,
-            set up the database, and publish your theme assets automatically.
+            <strong>Almost done!</strong> After clicking "Complete Setup", we'll create your configuration file and publish your theme assets automatically.
         </div>
 
         <div class="setup-actions">

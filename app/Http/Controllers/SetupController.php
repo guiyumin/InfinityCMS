@@ -46,30 +46,83 @@ class SetupController {
     }
 
     /**
-     * Process Step 1: Basic Configuration
+     * Process Step 1: Database & Admin Account
      */
     protected function processStep1() {
-        $data = [
-            'app_name' => request()->post('app_name'),
-            'app_url' => rtrim(request()->post('app_url'), '/'),
-            'timezone' => request()->post('timezone', 'UTC'),
-            'theme' => request()->post('theme', 'infinity'),
-        ];
+        $data = [];
+
+        // Database configuration
+        $data['db_driver'] = request()->post('db_driver', 'sqlite');
+
+        if ($data['db_driver'] === 'mysql') {
+            $data['db_host'] = request()->post('db_host');
+            $data['db_port'] = request()->post('db_port', '3306');
+            $data['db_name'] = request()->post('db_name');
+            $data['db_user'] = request()->post('db_user');
+            $data['db_pass'] = request()->post('db_pass');
+        }
+
+        // Admin account
+        $data['admin_username'] = request()->post('admin_username');
+        $data['admin_email'] = request()->post('admin_email');
+        $data['admin_password'] = request()->post('admin_password');
+        $password_confirm = request()->post('admin_password_confirm');
 
         // Validation
         $errors = [];
-        if (empty($data['app_name'])) {
-            $errors['app_name'] = 'Application name is required';
+
+        // Validate MySQL configuration if MySQL is selected
+        if ($data['db_driver'] === 'mysql') {
+            if (empty($data['db_host'])) {
+                $errors['db_host'] = 'Database host is required';
+            }
+            if (empty($data['db_name'])) {
+                $errors['db_name'] = 'Database name is required';
+            }
+            if (empty($data['db_user'])) {
+                $errors['db_user'] = 'Database username is required';
+            }
+
+            // Test MySQL connection if basic validation passes
+            if (empty($errors)) {
+                $connectionTest = $this->testMySQLConnection(
+                    $data['db_host'],
+                    $data['db_port'],
+                    $data['db_name'],
+                    $data['db_user'],
+                    $data['db_pass']
+                );
+
+                if (!$connectionTest['success']) {
+                    $errors['general'] = $connectionTest['message'];
+                }
+            }
         }
-        if (empty($data['app_url'])) {
-            $errors['app_url'] = 'Application URL is required';
-        } elseif (!filter_var($data['app_url'], FILTER_VALIDATE_URL)) {
-            $errors['app_url'] = 'Please enter a valid URL';
+
+        // Validate admin account
+        if (empty($data['admin_username'])) {
+            $errors['admin_username'] = 'Username is required';
+        }
+        if (empty($data['admin_email'])) {
+            $errors['admin_email'] = 'Email is required';
+        } elseif (!filter_var($data['admin_email'], FILTER_VALIDATE_EMAIL)) {
+            $errors['admin_email'] = 'Please enter a valid email';
+        }
+        if (empty($data['admin_password'])) {
+            $errors['admin_password'] = 'Password is required';
+        } elseif (strlen($data['admin_password']) < 8) {
+            $errors['admin_password'] = 'Password must be at least 8 characters';
+        }
+        if ($data['admin_password'] !== $password_confirm) {
+            $errors['admin_password_confirm'] = 'Passwords do not match';
         }
 
         if (!empty($errors)) {
             $_SESSION['errors'] = $errors;
-            $_SESSION['old'] = $data;
+            // Store old values (except password) for form repopulation
+            $oldData = $data;
+            unset($oldData['admin_password']); // Don't store password in session
+            $_SESSION['old'] = $oldData;
             redirect(url('/setup?step=1'));
             return;
         }
@@ -82,7 +135,7 @@ class SetupController {
     }
 
     /**
-     * Process Step 2: Database & Admin Account
+     * Process Step 2: Site Settings
      */
     protected function processStep2() {
         if (!isset($_SESSION['setup_config'])) {
@@ -92,45 +145,26 @@ class SetupController {
 
         $config = $_SESSION['setup_config'];
 
-        // Database configuration
-        $config['db_driver'] = request()->post('db_driver', 'sqlite');
-
-        if ($config['db_driver'] === 'mysql') {
-            $config['db_host'] = request()->post('db_host');
-            $config['db_port'] = request()->post('db_port', '3306');
-            $config['db_name'] = request()->post('db_name');
-            $config['db_user'] = request()->post('db_user');
-            $config['db_pass'] = request()->post('db_pass');
-        }
-
-        // Admin account
-        $config['admin_username'] = request()->post('admin_username');
-        $config['admin_email'] = request()->post('admin_email');
-        $config['admin_password'] = request()->post('admin_password');
-        $password_confirm = request()->post('admin_password_confirm');
+        // Site settings from step 2
+        $config['app_name'] = request()->post('app_name');
+        $config['app_url'] = rtrim(request()->post('app_url'), '/');
+        $config['timezone'] = request()->post('timezone', 'UTC');
+        $config['theme'] = request()->post('theme', 'infinity');
 
         // Validation
         $errors = [];
-
-        if (empty($config['admin_username'])) {
-            $errors['admin_username'] = 'Username is required';
+        if (empty($config['app_name'])) {
+            $errors['app_name'] = 'Application name is required';
         }
-        if (empty($config['admin_email'])) {
-            $errors['admin_email'] = 'Email is required';
-        } elseif (!filter_var($config['admin_email'], FILTER_VALIDATE_EMAIL)) {
-            $errors['admin_email'] = 'Please enter a valid email';
-        }
-        if (empty($config['admin_password'])) {
-            $errors['admin_password'] = 'Password is required';
-        } elseif (strlen($config['admin_password']) < 8) {
-            $errors['admin_password'] = 'Password must be at least 8 characters';
-        }
-        if ($config['admin_password'] !== $password_confirm) {
-            $errors['admin_password_confirm'] = 'Passwords do not match';
+        if (empty($config['app_url'])) {
+            $errors['app_url'] = 'Application URL is required';
+        } elseif (!filter_var($config['app_url'], FILTER_VALIDATE_URL)) {
+            $errors['app_url'] = 'Please enter a valid URL';
         }
 
         if (!empty($errors)) {
             $_SESSION['errors'] = $errors;
+            $_SESSION['old'] = $config;
             redirect(url('/setup?step=2'));
             return;
         }
@@ -262,6 +296,80 @@ PHP;
         } catch (\Exception $e) {
             // Database might not be ready yet, skip for now
             // Admin can be created through migrations
+        }
+    }
+
+    /**
+     * Test MySQL database connection
+     *
+     * @param string $host
+     * @param int $port
+     * @param string $database
+     * @param string $username
+     * @param string $password
+     * @return array
+     */
+    protected function testMySQLConnection($host, $port, $database, $username, $password) {
+        try {
+            // Check if PDO MySQL driver is available
+            if (!extension_loaded('pdo_mysql')) {
+                return [
+                    'success' => false,
+                    'message' => 'MySQL PDO extension is not installed. Please install php-mysql extension.',
+                ];
+            }
+
+            // Attempt connection
+            $dsn = "mysql:host={$host};port={$port};charset=utf8mb4";
+            $pdo = new \PDO($dsn, $username, $password, [
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                \PDO::ATTR_TIMEOUT => 5, // 5 second timeout
+            ]);
+
+            // Check if database exists
+            $stmt = $pdo->query("SHOW DATABASES LIKE '{$database}'");
+            $dbExists = $stmt->rowCount() > 0;
+
+            if (!$dbExists) {
+                return [
+                    'success' => false,
+                    'message' => "Database '{$database}' does not exist. Please create it first or use an existing database.",
+                ];
+            }
+
+            // Try to use the database
+            $pdo->exec("USE `{$database}`");
+
+            return [
+                'success' => true,
+                'message' => 'MySQL connection successful',
+            ];
+
+        } catch (\PDOException $e) {
+            // Parse common error messages
+            $message = $e->getMessage();
+
+            if (strpos($message, 'Access denied') !== false) {
+                return [
+                    'success' => false,
+                    'message' => 'Access denied: Invalid username or password.',
+                ];
+            } elseif (strpos($message, 'Unknown database') !== false) {
+                return [
+                    'success' => false,
+                    'message' => "Database '{$database}' does not exist. Please create it first.",
+                ];
+            } elseif (strpos($message, "Can't connect") !== false || strpos($message, 'Connection refused') !== false) {
+                return [
+                    'success' => false,
+                    'message' => "Cannot connect to MySQL server at {$host}:{$port}. Please check if MySQL is running.",
+                ];
+            } else {
+                return [
+                    'success' => false,
+                    'message' => 'MySQL connection failed: ' . $message,
+                ];
+            }
         }
     }
 
