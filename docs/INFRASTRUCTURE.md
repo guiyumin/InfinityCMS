@@ -15,20 +15,16 @@ This document describes the three critical infrastructure features implemented:
 ### Implementation Status: COMPLETE
 
 ### Files Created:
+
 - `app/Http/Controllers/AuthController.php` - Login/logout controller
 - `themes/infinity/pages/auth/login.php` - Login page template
 
 ### Routes:
+
 ```php
 GET  /login  → AuthController@showLogin   // Show login form
 POST /login  → AuthController@login       // Process login
 GET  /logout → AuthController@logout      // Logout user
-```
-
-### Default Credentials:
-```
-Username: admin
-Password: admin123
 ```
 
 **IMPORTANT:** Change these immediately after first login!
@@ -36,16 +32,19 @@ Password: admin123
 ### How Login Works:
 
 1. **User visits `/admin/dashboard`**
+
    - AdminMiddleware checks `is_logged_in()`
    - Not logged in → Redirects to `/login`
 
 2. **User enters credentials on `/login`**
+
    - Form submits to `POST /login`
    - AuthController validates credentials
    - Checks username/email against `users` table
    - Verifies password with `password_verify()`
 
 3. **Login Success:**
+
    - Sets `$_SESSION['user_id']`
    - Sets `$_SESSION['user']` with safe user data
    - Redirects to `/admin/dashboard`
@@ -73,12 +72,14 @@ public function handle(Request $request) {
 ```
 
 **Protected Routes:**
+
 - `/admin/dashboard`
 - `/admin/posts`
 - `/admin/migrations`
 - All routes under `/admin/*` prefix
 
 ### Security Features:
+
 ✅ CSRF protection on login form
 ✅ Password hashing with `password_hash()`
 ✅ Session-based authentication
@@ -93,6 +94,7 @@ public function handle(Request $request) {
 ### Implementation Status: COMPLETE
 
 ### Files Created:
+
 - `themes/infinity/pages/errors/404.php` - Page not found
 - `themes/infinity/pages/errors/500.php` - Internal server error
 
@@ -103,6 +105,7 @@ public function handle(Request $request) {
 **Trigger:** Route not found in Router
 
 **File:** `app/Core/Router.php` (line 164)
+
 ```php
 if ($route === null) {
     $response->notFound();
@@ -111,6 +114,7 @@ if ($route === null) {
 ```
 
 **Response:** `app/Core/Response.php` (lines 116-136)
+
 ```php
 public function notFound($message = 'Page Not Found') {
     // Tries to render errors.404 template
@@ -122,6 +126,7 @@ public function notFound($message = 'Page Not Found') {
 ```
 
 **Template:** Beautiful gradient page with:
+
 - Large "404" text
 - Error message
 - "Go Home" button
@@ -132,6 +137,7 @@ public function notFound($message = 'Page Not Found') {
 **Trigger:** Uncaught exception anywhere in the app
 
 **File:** `bootstrap/app.php` (lines 31-70)
+
 ```php
 set_exception_handler(function($exception) use ($env) {
     // Logs error to error_log
@@ -142,6 +148,7 @@ set_exception_handler(function($exception) use ($env) {
 ```
 
 **Response:** `app/Core/Response.php` (lines 159-180)
+
 ```php
 public function error($message = '', $details = '') {
     // Renders errors.500 template
@@ -153,6 +160,7 @@ public function error($message = '', $details = '') {
 ```
 
 **Template:** Beautiful gradient page with:
+
 - Error icon
 - "500" text
 - Error message
@@ -163,6 +171,7 @@ public function error($message = '', $details = '') {
 ### Debug Mode Behavior:
 
 **File:** `.env.php`
+
 ```php
 'app' => [
     'debug' => true,  // Development: shows stack traces
@@ -171,12 +180,14 @@ public function error($message = '', $details = '') {
 ```
 
 **Debug Mode ON:**
+
 - Shows full exception message
 - Shows file and line number
 - Shows stack trace
 - Displays in `<details>` accordion
 
 **Debug Mode OFF:**
+
 - Shows generic "Something went wrong" message
 - Hides all technical details
 - User-friendly error pages
@@ -188,20 +199,24 @@ public function error($message = '', $details = '') {
 ### Implementation Status: PARTIAL
 
 ### Files Created:
+
 - `app/Http/Middlewares/SetupMiddleware.php` - Setup detection
 
 ### How It Works:
 
 **SetupMiddleware checks:**
+
 1. Is there a `_cms_setup_complete` session flag? → Skip check
 2. Does `users` table exist?
 3. Does `users` table have at least one user?
 
 **If NO users found:**
+
 - Redirects to `/setup`
 - Shows setup wizard (TO BE IMPLEMENTED)
 
 **If users exist:**
+
 - Sets `$_SESSION['_cms_setup_complete'] = true`
 - Allows normal operation
 
@@ -216,6 +231,7 @@ public function error($message = '', $details = '') {
 
 1. **First visit to any page** → Redirect to `/setup`
 2. **Setup Wizard Pages:**
+
    - Welcome page
    - Database connection test
    - Run migrations button
@@ -261,6 +277,7 @@ $router->get('/setup/complete', 'SetupController@complete');
 ### How Admin Routes Are Protected:
 
 1. **Route Definition** (`config/routes.php`):
+
 ```php
 $router->group(['prefix' => '/admin', 'middleware' => 'admin'], function($router) {
     // All routes here require authentication
@@ -271,6 +288,7 @@ $router->group(['prefix' => '/admin', 'middleware' => 'admin'], function($router
 ```
 
 2. **Middleware Enforcement** (`app/Core/Router.php`):
+
 ```php
 // Router automatically runs middleware before controller
 if (!empty($route['middleware'])) {
@@ -283,6 +301,7 @@ if (!empty($route['middleware'])) {
 ```
 
 3. **AdminMiddleware** (`app/Http/Middlewares/AdminMiddleware.php`):
+
 ```php
 public function handle(Request $request) {
     // GUARD #1: Check authentication
@@ -328,6 +347,7 @@ User lands on /login page
 ## TESTING GUIDE
 
 ### Test 1: Login System
+
 ```bash
 # Test non-logged-in redirect
 Visit: http://localhost/admin/dashboard
@@ -345,12 +365,14 @@ Expected: Session destroyed, redirected to /login
 ```
 
 ### Test 2: 404 Error Page
+
 ```bash
 Visit: http://localhost/this-page-does-not-exist
 Expected: Beautiful 404 page with purple gradient
 ```
 
 ### Test 3: 500 Error Page
+
 ```php
 // Create a test route that throws exception
 $router->get('/test-error', function() {
@@ -362,6 +384,7 @@ Expected: Beautiful 500 page with pink/red gradient
 ```
 
 ### Test 4: Admin Protection
+
 ```bash
 # Clear session/cookies, then:
 Visit: http://localhost/admin/dashboard
@@ -380,6 +403,7 @@ Expected: Redirect to /login
 ## SECURITY CHECKLIST
 
 ### Authentication
+
 - [x] Password hashing (`password_hash()`)
 - [x] CSRF protection on forms
 - [x] Session-based authentication
@@ -389,12 +413,14 @@ Expected: Redirect to /login
 - [x] Remember me functionality (NOT IMPLEMENTED - optional)
 
 ### Admin Protection
+
 - [x] Middleware-based route protection
 - [x] Authentication check on every admin page
 - [x] Redirect to login for unauthorized users
 - [x] Session validation
 
 ### Error Handling
+
 - [x] Global exception handler
 - [x] Custom error pages (404, 500)
 - [x] Debug mode toggle
@@ -402,6 +428,7 @@ Expected: Redirect to /login
 - [x] Graceful degradation (fallback to plain text)
 
 ### Setup Security
+
 - [x] First-time setup detection
 - [ ] Setup wizard (TO IMPLEMENT)
 - [ ] Lock setup after completion (TO IMPLEMENT)
@@ -412,13 +439,16 @@ Expected: Redirect to /login
 ## REMAINING WORK
 
 ### High Priority:
+
 1. **Complete Setup Wizard**
+
    - Create SetupController
    - Create setup views
    - Add setup routes
    - Implement admin account creation form
 
 2. **Add Password Reset**
+
    - Forgot password link on login
    - Email-based reset (or admin override)
 
@@ -428,12 +458,15 @@ Expected: Redirect to /login
    - User profile editing
 
 ### Medium Priority:
+
 1. **Login Rate Limiting**
+
    - Prevent brute force attacks
    - Track failed attempts
    - Temporary lockout
 
 2. **Session Security Enhancements**
+
    - Session fingerprinting
    - IP validation
    - User agent validation
@@ -443,6 +476,7 @@ Expected: Redirect to /login
    - Secure cookie-based authentication
 
 ### Low Priority:
+
 1. **Two-Factor Authentication**
 2. **OAuth Integration**
 3. **Activity Logging**
@@ -452,14 +486,8 @@ Expected: Redirect to /login
 
 ## QUICK REFERENCE
 
-### Default Credentials
-```
-Username: admin
-Email: admin@example.com
-Password: admin123
-```
-
 ### Important URLs
+
 ```
 /login             - Login page
 /logout            - Logout (destroy session)
@@ -469,6 +497,7 @@ Password: admin123
 ```
 
 ### Key Files
+
 ```
 app/Http/Controllers/AuthController.php          - Authentication logic
 app/Http/Middlewares/AdminMiddleware.php         - Admin route protection

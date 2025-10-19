@@ -19,7 +19,7 @@ class MigrationController {
         $migration = new Migration();
         $status = $migration->getStatus();
 
-        return view('migrations.index', [
+        return admin_view('migrations.index', [
             'title' => 'Database Migrations',
             'migrations' => $status,
         ]);

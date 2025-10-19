@@ -5,11 +5,13 @@
 ### 1. Upload to Server
 
 **Zip File Location:**
+
 ```
 /Users/yumin/ventures/infinity-cms-deployment-YYYYMMDD-HHMMSS.zip
 ```
 
 **Upload via:**
+
 - FTP/SFTP to your web hosting
 - SCP: `scp infinity-cms-deployment-*.zip user@server:/path/to/webroot/`
 - cPanel File Manager
@@ -41,6 +43,7 @@ chmod 644 .env.php
 ### 3. Configure Environment
 
 **Edit `.env.php`:**
+
 ```php
 'app' => [
     'url' => 'https://your-domain.com',  // Change this!
@@ -62,12 +65,14 @@ chmod 644 .env.php
 ### 4. Initialize Database
 
 **Option A: Via Browser (Recommended)**
+
 1. Visit: `https://your-domain.com/admin/migrations`
-2. Login with default credentials: `admin` / `admin123`
+2. Login with credentials
 3. Click "Run Migrations"
 4. Database initialized!
 
 **Option B: Via CLI**
+
 ```bash
 # Create empty database file
 touch database/database.sqlite
@@ -82,12 +87,8 @@ exit;
 ### 5. First Login
 
 1. Visit: `https://your-domain.com/login`
-2. **Default Credentials:**
-   - Username: `admin`
-   - Email: `admin@example.com`
-   - Password: `admin123`
 
-3. **IMPORTANT: Change password immediately!**
+2. **IMPORTANT: Change password immediately!**
 
 ### 6. Security Checklist
 
@@ -110,6 +111,7 @@ exit;
 ## Server Requirements
 
 ### Minimum Requirements:
+
 - PHP 7.4 or higher
 - SQLite extension (or MySQL 5.7+)
 - Apache with mod_rewrite OR Nginx
@@ -117,6 +119,7 @@ exit;
 - 50MB disk space
 
 ### PHP Extensions Required:
+
 - PDO (PHP Data Objects)
 - pdo_sqlite or pdo_mysql
 - mbstring
@@ -124,6 +127,7 @@ exit;
 - session
 
 ### Apache Configuration:
+
 ```apache
 # .htaccess already included
 # Ensure mod_rewrite is enabled:
@@ -132,6 +136,7 @@ service apache2 restart
 ```
 
 ### Nginx Configuration:
+
 ```nginx
 server {
     listen 80;
@@ -187,6 +192,7 @@ infinity-cms/
 ## Post-Deployment Tasks
 
 ### 1. Test Core Functionality
+
 - [ ] Homepage loads: `https://your-domain.com/`
 - [ ] Login works: `https://your-domain.com/login`
 - [ ] Admin dashboard accessible: `https://your-domain.com/admin/dashboard`
@@ -194,6 +200,7 @@ infinity-cms/
 - [ ] 404 page displays: `https://your-domain.com/nonexistent`
 
 ### 2. Configure Site Settings
+
 1. Login to admin dashboard
 2. Update site name in `.env.php`
 3. Change admin password
@@ -201,6 +208,7 @@ infinity-cms/
 5. Review sample blog posts
 
 ### 3. Optional: Setup Cron Jobs
+
 ```bash
 # Clear expired sessions daily
 0 2 * * * find /path/to/infinity-cms/storage/sessions -type f -mtime +1 -delete
@@ -217,7 +225,9 @@ infinity-cms/
 ## Troubleshooting
 
 ### Issue: "Page Not Found" everywhere
+
 **Solution:** Enable mod_rewrite or check Nginx config
+
 ```bash
 # Apache:
 sudo a2enmod rewrite
@@ -227,14 +237,18 @@ sudo service apache2 restart
 ```
 
 ### Issue: "Database error" or blank page
+
 **Solution:** Check file permissions and database path
+
 ```bash
 chmod 777 storage/
 chmod 666 database/database.sqlite  # SQLite only
 ```
 
 ### Issue: "500 Internal Server Error"
+
 **Solution:** Check error logs and set `debug => true` temporarily
+
 ```bash
 # Apache:
 tail -f /var/log/apache2/error.log
@@ -247,7 +261,9 @@ tail -f storage/logs/*.log
 ```
 
 ### Issue: Can't login
+
 **Solution:** Run migrations to create admin user
+
 ```bash
 # Visit: https://your-domain.com/admin/migrations
 # Or manually:
@@ -260,6 +276,7 @@ sqlite3 database/database.sqlite
 ## Backup & Restore
 
 ### Backup
+
 ```bash
 # Full backup
 tar -czf infinity-cms-backup-$(date +%Y%m%d).tar.gz \
@@ -272,6 +289,7 @@ cp database/database.sqlite backups/db-$(date +%Y%m%d).sqlite
 ```
 
 ### Restore
+
 ```bash
 # Extract backup
 tar -xzf infinity-cms-backup-YYYYMMDD.tar.gz
@@ -286,6 +304,7 @@ chmod 666 database/database.sqlite
 ## Updating
 
 ### Update Process
+
 1. Backup current installation
 2. Extract new version to temporary folder
 3. Copy `.env.php` from old to new
@@ -309,6 +328,7 @@ chmod 666 database/database.sqlite
 ## Production Optimization
 
 ### 1. Enable OPcache (PHP)
+
 ```ini
 ; php.ini
 opcache.enable=1
@@ -318,6 +338,7 @@ opcache.revalidate_freq=2
 ```
 
 ### 2. Enable Gzip Compression
+
 ```apache
 # .htaccess
 <IfModule mod_deflate.c>
@@ -326,6 +347,7 @@ opcache.revalidate_freq=2
 ```
 
 ### 3. Browser Caching
+
 ```apache
 # .htaccess
 <IfModule mod_expires.c>
@@ -343,16 +365,16 @@ opcache.revalidate_freq=2
 
 ## Quick Reference
 
-| Item | Default Value |
-|------|---------------|
-| **Admin URL** | `/admin/dashboard` |
-| **Login URL** | `/login` |
-| **Migrations URL** | `/admin/migrations` |
-| **Default Username** | `admin` |
-| **Default Password** | `admin123` |
+| Item                  | Default Value              |
+| --------------------- | -------------------------- |
+| **Admin URL**         | `/admin/dashboard`         |
+| **Login URL**         | `/login`                   |
+| **Migrations URL**    | `/admin/migrations`        |
+| **Default Username**  | `admin`                    |
+| **Default Password**  | `admin123`                 |
 | **Database Location** | `database/database.sqlite` |
-| **Document Root** | `public/` |
-| **Upload Directory** | `storage/uploads/` |
+| **Document Root**     | `public/`                  |
+| **Upload Directory**  | `storage/uploads/`         |
 
 ---
 

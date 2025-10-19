@@ -18,7 +18,7 @@ class DashboardController {
             'draft_posts' => db()->table('posts')->where('status', 'draft')->count(),
         ];
 
-        return view('dashboard.index', [
+        return admin_view('dashboard.index', [
             'title' => 'Dashboard',
             'stats' => $stats,
         ]);

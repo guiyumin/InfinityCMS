@@ -52,14 +52,7 @@
         </form>
 
         <div class="login-footer">
-            <p class="help-text">
-                <strong>Default Credentials:</strong><br>
-                Username: <code>admin</code><br>
-                Password: <code>admin123</code>
-            </p>
-            <p class="help-text">
-                <small>Change these credentials immediately after first login!</small>
-            </p>
+            
         </div>
     </div>
 </div>

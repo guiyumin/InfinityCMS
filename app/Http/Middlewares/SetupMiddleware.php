@@ -19,13 +19,17 @@ class SetupMiddleware {
      * @return bool
      */
     public function handle(Request $request) {
-        // Skip setup check if already on setup page
-        if ($this->isSetupRoute($request->uri())) {
-            return true;
+        $isSetupRoute = $this->isSetupRoute($request->uri());
+        $needsSetup = $this->needsSetup();
+
+        // If on setup page but setup is already complete, redirect to home
+        if ($isSetupRoute && !$needsSetup) {
+            redirect(url('/'));
+            return false;
         }
 
-        // Check if setup is needed
-        if ($this->needsSetup()) {
+        // If not on setup page and setup is needed, redirect to setup
+        if (!$isSetupRoute && $needsSetup) {
             redirect(url('/setup'));
             return false;
         }
