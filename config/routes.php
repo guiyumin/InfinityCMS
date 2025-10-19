@@ -78,6 +78,13 @@ $router->group(['prefix' => '/admin', 'middleware' => 'admin'], function($router
     $router->post('/migrations/rollback', 'Admin/MigrationController@rollback');
     $router->post('/migrations/reset', 'Admin/MigrationController@reset');
     $router->get('/migrations/status', 'Admin/MigrationController@status');
+
+    // Uploads Manager
+    $router->get('/uploads', 'Admin/UploadsController@index');
+    $router->post('/uploads/store', 'Admin/UploadsController@store');
+    $router->post('/uploads/create-folder', 'Admin/UploadsController@createFolder');
+    $router->post('/uploads/delete', 'Admin/UploadsController@delete');
+    $router->get('/uploads/file-info', 'Admin/UploadsController@fileInfo');
 });
 
 // ==========================================
