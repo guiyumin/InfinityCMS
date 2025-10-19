@@ -40,9 +40,15 @@ class AssetsController {
             }
         }
 
+        // Check admin assets status
+        $adminAssetsPath = base_path('app/Views/admin/assets');
+        $adminPublishedPath = base_path('public/admin/assets');
+
         $data = [
             'title' => 'Asset Management',
             'themes' => $themes,
+            'admin_has_assets' => is_dir($adminAssetsPath),
+            'admin_is_published' => is_dir($adminPublishedPath),
             'success' => session('success'),
             'error' => session('error'),
         ];
@@ -75,30 +81,32 @@ class AssetsController {
     }
 
     /**
-     * Publish all theme assets
+     * Publish all theme assets and admin assets
      */
     public function publishAll() {
         $force = request()->post('force') === 'true';
-        $results = AssetPublisher::publishAll($force);
+
+        // Publish all assets (themes + admin)
+        $results = AssetPublisher::publishAll($force, true);
 
         $successCount = 0;
         $failCount = 0;
         $messages = [];
 
-        foreach ($results as $theme => $result) {
+        foreach ($results as $name => $result) {
             if ($result['success']) {
                 $successCount++;
             } else {
                 $failCount++;
-                $messages[] = "{$theme}: {$result['message']}";
+                $messages[] = "{$name}: {$result['message']}";
             }
         }
 
         if ($failCount > 0) {
-            $errorMsg = "Published {$successCount} themes successfully, {$failCount} failed. Errors: " . implode('; ', $messages);
+            $errorMsg = "Published {$successCount} successfully, {$failCount} failed. Errors: " . implode('; ', $messages);
             flash('error', $errorMsg);
         } else {
-            flash('success', "Successfully published assets for {$successCount} themes");
+            flash('success', "Successfully published assets for {$successCount} items (themes + admin)");
         }
 
         redirect(url('/admin/assets'));

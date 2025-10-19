@@ -191,7 +191,7 @@ class AdminView {
      * @return string
      */
     public function asset($path) {
-        return url('app/Views/admin/assets/' . ltrim($path, '/'));
+        return url('admin/assets/' . ltrim($path, '/'));
     }
 
     /**
@@ -303,7 +303,7 @@ class AdminContext {
      * @return string
      */
     public function asset($path) {
-        return url('app/Views/admin/assets/' . ltrim($path, '/'));
+        return url('admin/assets/' . ltrim($path, '/'));
     }
 
     /**

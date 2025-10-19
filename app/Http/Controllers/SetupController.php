@@ -349,10 +349,14 @@ PHP;
     }
 
     /**
-     * Publish theme assets to public folder
+     * Publish theme and admin assets to public folder
      */
     protected function publishAssets($theme) {
+        // Publish theme assets
         AssetPublisher::publish($theme, true);
+
+        // Publish admin assets
+        AssetPublisher::publish('admin', true);
     }
 
     /**

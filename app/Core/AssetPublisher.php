@@ -9,21 +9,29 @@ namespace App\Core;
 class AssetPublisher {
 
     /**
-     * Publish assets for a specific theme
+     * Publish assets for a specific theme or admin
      *
-     * @param string $theme Theme name
+     * @param string|null $theme Theme name, or null for admin assets
      * @param bool $force Force republish even if assets exist
      * @return array Result with success status and message
      */
-    public static function publish($theme, $force = false) {
-        $sourcePath = base_path("themes/{$theme}/assets");
-        $targetPath = base_path("public/themes/{$theme}/assets");
+    public static function publish($theme = null, $force = false) {
+        // Determine if publishing admin or theme assets
+        if ($theme === 'admin' || $theme === null) {
+            $sourcePath = base_path("app/Views/admin/assets");
+            $targetPath = base_path("public/admin/assets");
+            $assetType = 'Admin';
+        } else {
+            $sourcePath = base_path("themes/{$theme}/assets");
+            $targetPath = base_path("public/themes/{$theme}/assets");
+            $assetType = "Theme '{$theme}'";
+        }
 
         // Check if source exists
         if (!is_dir($sourcePath)) {
             return [
                 'success' => false,
-                'message' => "Theme '{$theme}' assets not found at {$sourcePath}",
+                'message' => "{$assetType} assets not found at {$sourcePath}",
             ];
         }
 
@@ -43,7 +51,7 @@ class AssetPublisher {
 
             return [
                 'success' => true,
-                'message' => "Assets for theme '{$theme}' published successfully",
+                'message' => "Assets for {$assetType} published successfully",
                 'path' => $targetPath,
             ];
         } catch (\Exception $e) {
@@ -55,20 +63,24 @@ class AssetPublisher {
     }
 
     /**
-     * Publish all theme assets
+     * Publish all theme assets and admin assets
      *
      * @param bool $force Force republish even if assets exist
-     * @return array Results for each theme
+     * @param bool $includeAdmin Include admin assets in publish (default: true)
+     * @return array Results for each theme/admin
      */
-    public static function publishAll($force = false) {
-        $themesPath = base_path('themes');
+    public static function publishAll($force = false, $includeAdmin = true) {
         $results = [];
 
+        // Publish admin assets first
+        if ($includeAdmin) {
+            $results['admin'] = self::publish('admin', $force);
+        }
+
+        // Publish theme assets
+        $themesPath = base_path('themes');
         if (!is_dir($themesPath)) {
-            return [
-                'success' => false,
-                'message' => 'Themes directory not found',
-            ];
+            return $results;
         }
 
         $themes = scandir($themesPath);
