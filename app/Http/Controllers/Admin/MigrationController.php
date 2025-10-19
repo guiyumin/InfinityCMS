@@ -82,39 +82,37 @@ class MigrationController {
     }
 
     /**
-     * Rollback migrations
+     * Rollback a single migration
      *
      * @return void
      */
-    public function rollback() {
+    public function rollbackOne() {
+        $migrationName = request()->get('migration');
+
+        if (!$migrationName) {
+            flash('danger', 'Migration name is required');
+            redirect(url('/admin/migrations'));
+            return;
+        }
+
         $migration = new Migration();
-        $results = $migration->rollback();
+        $results = $migration->rollbackOne($migrationName);
 
         // Clear migrations cache to reflect changes
         AdminMiddleware::clearMigrationsCache();
 
         // Check if there are any failures
         $hasErrors = false;
-        $successCount = 0;
-        $errorCount = 0;
-
         foreach ($results as $result) {
             if (strpos($result, '✗') !== false) {
                 $hasErrors = true;
-                $errorCount++;
-            } elseif (strpos($result, '✓') !== false) {
-                $successCount++;
+                break;
             }
         }
 
         if (is_htmx()) {
             $alertClass = $hasErrors ? 'alert-danger' : 'alert-warning';
             $html = '<div class="alert ' . $alertClass . '">';
-
-            if ($successCount > 0 || $errorCount > 0) {
-                $html .= '<h4>Rollback Results: ' . $successCount . ' succeeded, ' . $errorCount . ' failed</h4>';
-            }
-
             foreach ($results as $result) {
                 $resultClass = strpos($result, '✗') !== false ? 'text-danger' : '';
                 $html .= '<p class="' . $resultClass . '">' . e($result) . '</p>';
@@ -126,11 +124,7 @@ class MigrationController {
         }
 
         $flashType = $hasErrors ? 'danger' : 'warning';
-        $message = '';
-        if ($successCount > 0 || $errorCount > 0) {
-            $message = '<strong>Rollback Results: ' . $successCount . ' succeeded, ' . $errorCount . ' failed</strong><br>';
-        }
-        $message .= implode('<br>', $results);
+        $message = implode('<br>', $results);
 
         flash($flashType, $message);
         redirect(url('/admin/migrations'));

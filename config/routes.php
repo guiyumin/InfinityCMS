@@ -76,7 +76,7 @@ $router->group(['prefix' => '/admin', 'middleware' => 'admin'], function($router
     // Database Migrations
     $router->get('/migrations', 'Admin/MigrationController@index');
     $router->post('/migrations/run', 'Admin/MigrationController@run');
-    $router->post('/migrations/rollback', 'Admin/MigrationController@rollback');
+    $router->post('/migrations/rollback-one', 'Admin/MigrationController@rollbackOne');
     $router->post('/migrations/reset', 'Admin/MigrationController@reset');
     $router->get('/migrations/status', 'Admin/MigrationController@status');
 

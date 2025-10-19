@@ -119,6 +119,41 @@ class Migration {
     }
 
     /**
+     * Rollback a specific migration
+     * 回滚特定的迁移
+     *
+     * @param string $migrationName
+     * @return array Results
+     */
+    public function rollbackOne($migrationName) {
+        $results = [];
+
+        // Check if migration is actually executed
+        $migration = $this->db->table('migrations')
+            ->where('migration', $migrationName)
+            ->first();
+
+        if (!$migration) {
+            return ['✗ Migration not found or not executed: ' . $migrationName];
+        }
+
+        try {
+            $this->executeMigrationDown($migrationName);
+
+            // Remove from migrations table
+            $this->db->table('migrations')
+                ->where('migration', $migrationName)
+                ->delete();
+
+            $results[] = "✓ Rolled back: {$migrationName}";
+        } catch (\Exception $e) {
+            $results[] = "✗ Failed to rollback: {$migrationName} - " . $e->getMessage();
+        }
+
+        return $results;
+    }
+
+    /**
      * Reset all migrations
      * 重置所有迁移
      *
@@ -149,7 +184,13 @@ class Migration {
             $migrations[] = basename($file, '.php');
         }
 
-        sort($migrations);
+        // Sort by the numeric prefix (first 3 characters)
+        usort($migrations, function($a, $b) {
+            $prefixA = (int)substr($a, 0, 3);
+            $prefixB = (int)substr($b, 0, 3);
+            return $prefixA - $prefixB;
+        });
+
         return $migrations;
     }
 
@@ -206,7 +247,8 @@ class Migration {
             ];
         }
 
-        return $status;
+        // Return in reverse order (newest first)
+        return array_reverse($status);
     }
 
     /**

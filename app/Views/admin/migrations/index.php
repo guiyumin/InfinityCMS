@@ -11,16 +11,6 @@
                 </button>
             </form>
 
-            <form method="POST" action="<?= url('/admin/migrations/rollback') ?>" style="display: inline;">
-                <button type="submit" class="btn btn-warning" onclick="return confirm('Are you sure you want to rollback the last batch?')">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="1 4 1 10 7 10"></polyline>
-                        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
-                    </svg>
-                    Rollback
-                </button>
-            </form>
-
             <form method="POST" action="<?= url('/admin/migrations/reset') ?>" style="display: inline;">
                 <button type="submit" class="btn btn-danger" onclick="return confirm('WARNING: This will rollback ALL migrations and reset the database. Are you sure?')">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -73,12 +63,13 @@
                     <th>Migration</th>
                     <th>Status</th>
                     <th>Batch</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if (empty($migrations)): ?>
                     <tr>
-                        <td colspan="3" class="text-center text-muted">No migrations found</td>
+                        <td colspan="4" class="text-center text-muted">No migrations found</td>
                     </tr>
                 <?php else: ?>
                     <?php foreach ($migrations as $migration): ?>
@@ -92,6 +83,25 @@
                                 <?php endif; ?>
                             </td>
                             <td><?= $migration['batch'] ?? '-' ?></td>
+                            <td>
+                                <?php if ($migration['status'] === 'Migrated'): ?>
+                                    <form method="POST" action="<?= url('/admin/migrations/rollback-one') ?>" style="display: inline;">
+                                        <input type="hidden" name="migration" value="<?= htmlspecialchars($migration['migration']) ?>">
+                                        <button type="submit"
+                                                class="btn btn-sm btn-warning"
+                                                onclick="return confirm('Are you sure you want to rollback this migration: <?= htmlspecialchars($migration['migration']) ?>?')"
+                                                title="Rollback this migration">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="1 4 1 10 7 10"></polyline>
+                                                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                                            </svg>
+                                            Rollback
+                                        </button>
+                                    </form>
+                                <?php else: ?>
+                                    <span class="text-muted">-</span>
+                                <?php endif; ?>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 <?php endif; ?>
@@ -279,5 +289,15 @@
 
 .btn-danger:hover {
     background: #c82333;
+}
+
+.btn-sm {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.813rem;
+}
+
+.btn-sm svg {
+    width: 16px;
+    height: 16px;
 }
 </style>
