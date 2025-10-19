@@ -223,7 +223,7 @@ infinity-cms/
 - [ ] Homepage loads: `https://your-domain.com/`
 - [ ] Login works: `https://your-domain.com/login`
 - [ ] Admin dashboard accessible: `https://your-domain.com/admin/dashboard`
-- [ ] Blog page works: `https://your-domain.com/blog`
+- [ ] Post page works: `https://your-domain.com/post`
 - [ ] 404 page displays: `https://your-domain.com/nonexistent`
 
 ### 2. Configure Site Settings
@@ -232,7 +232,7 @@ infinity-cms/
 2. Update site name in `config.php`
 3. Change admin password
 4. Test migrations page
-5. Review sample blog posts
+5. Review sample posts
 
 ### 3. Optional: Setup Cron Jobs
 
@@ -398,16 +398,16 @@ opcache.revalidate_freq=2
 
 ## Quick Reference
 
-| Item                  | Default Value              |
-| --------------------- | -------------------------- |
-| **Admin URL**         | `/admin/dashboard`         |
-| **Login URL**         | `/login`                   |
-| **Migrations URL**    | `/admin/migrations`        |
-| **Default Username**  | `admin`                    |
-| **Default Password**  | `admin123`                 |
-| **Database Type**     | MySQL 5.7+                 |
-| **Document Root**     | `public/`                  |
-| **Upload Directory**  | `storage/uploads/`         |
+| Item                 | Default Value       |
+| -------------------- | ------------------- |
+| **Admin URL**        | `/admin/dashboard`  |
+| **Login URL**        | `/login`            |
+| **Migrations URL**   | `/admin/migrations` |
+| **Default Username** | `admin`             |
+| **Default Password** | `admin123`          |
+| **Database Type**    | MySQL 5.7+          |
+| **Document Root**    | `public/`           |
+| **Upload Directory** | `storage/uploads/`  |
 
 ---
 

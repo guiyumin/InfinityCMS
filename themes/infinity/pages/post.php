@@ -15,8 +15,8 @@
             </div>
         <?php endif; ?>
 
-        <div class="post-content">
-            <?= $post['content'] ?? '' ?>
+        <div class="post-content prose">
+            <?= $post['content_html'] ?? $post['content'] ?? '' ?>
         </div>
 
         <footer class="post-footer">

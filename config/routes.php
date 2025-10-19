@@ -12,8 +12,8 @@ $router = app('router');
 // Home page
 $router->get('/', 'HomeController@index');
 
-// Blog
-$router->get('/blog', 'PostController@index');
+// Posts
+$router->get('/posts', 'PostController@index');
 $router->get('/post/{slug}', 'PostController@show');
 
 // Pages
