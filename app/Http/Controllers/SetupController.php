@@ -27,6 +27,25 @@ class SetupController {
             'old' => session('old', []),
         ];
 
+        // Try to load existing configuration for pre-filling (if config exists)
+        // This allows reconfiguration without showing error messages
+        $envPath = base_path('.env.php');
+        if (file_exists($envPath)) {
+            $config = include $envPath;
+            if (isset($config['database']) && empty($data['old'])) {
+                // Pre-fill with existing values (except password) only if no form data exists
+                $data['old']['db_host'] = $config['database']['host'] ?? 'localhost';
+                $data['old']['db_port'] = $config['database']['port'] ?? '3306';
+                $data['old']['db_name'] = $config['database']['database'] ?? '';
+                $data['old']['db_user'] = $config['database']['username'] ?? '';
+            }
+            if (isset($config['app']) && empty($data['old'])) {
+                $data['old']['app_name'] = $config['app']['name'] ?? '';
+                $data['old']['app_url'] = $config['app']['url'] ?? '';
+                $data['old']['timezone'] = $config['app']['timezone'] ?? 'UTC';
+            }
+        }
+
         // Clear errors and old input after reading them (flash behavior)
         unset($_SESSION['errors'], $_SESSION['old']);
 
@@ -62,11 +81,27 @@ class SetupController {
         $data['db_user'] = request()->post('db_user');
         $data['db_pass'] = request()->post('db_pass', '');
 
-        // Admin account
-        $data['admin_username'] = request()->post('admin_username');
-        $data['admin_email'] = request()->post('admin_email');
-        $data['admin_password'] = request()->post('admin_password');
-        $password_confirm = request()->post('admin_password_confirm');
+        // Get admin account option
+        $adminOption = request()->post('admin_option', 'custom');
+        $data['admin_option'] = $adminOption;
+
+        if ($adminOption === 'default') {
+            // Use default credentials
+            $data['admin_username'] = 'admin';
+            $data['admin_email'] = 'admin@example.com';
+            $data['admin_password'] = 'admin123';
+        } elseif ($adminOption === 'skip') {
+            // Skip admin creation - user already has admin in DB
+            $data['admin_username'] = null;
+            $data['admin_email'] = null;
+            $data['admin_password'] = null;
+        } else {
+            // Get custom admin account details
+            $data['admin_username'] = request()->post('admin_username');
+            $data['admin_email'] = request()->post('admin_email');
+            $data['admin_password'] = request()->post('admin_password');
+            $password_confirm = request()->post('admin_password_confirm');
+        }
 
         // Validation
         $errors = [];
@@ -97,22 +132,24 @@ class SetupController {
             }
         }
 
-        // Validate admin account
-        if (empty($data['admin_username'])) {
-            $errors['admin_username'] = 'Username is required';
-        }
-        if (empty($data['admin_email'])) {
-            $errors['admin_email'] = 'Email is required';
-        } elseif (!filter_var($data['admin_email'], FILTER_VALIDATE_EMAIL)) {
-            $errors['admin_email'] = 'Please enter a valid email';
-        }
-        if (empty($data['admin_password'])) {
-            $errors['admin_password'] = 'Password is required';
-        } elseif (strlen($data['admin_password']) < 8) {
-            $errors['admin_password'] = 'Password must be at least 8 characters';
-        }
-        if ($data['admin_password'] !== $password_confirm) {
-            $errors['admin_password_confirm'] = 'Passwords do not match';
+        // Validate admin account only for custom option
+        if ($adminOption === 'custom') {
+            if (empty($data['admin_username'])) {
+                $errors['admin_username'] = 'Username is required';
+            }
+            if (empty($data['admin_email'])) {
+                $errors['admin_email'] = 'Email is required';
+            } elseif (!filter_var($data['admin_email'], FILTER_VALIDATE_EMAIL)) {
+                $errors['admin_email'] = 'Please enter a valid email';
+            }
+            if (empty($data['admin_password'])) {
+                $errors['admin_password'] = 'Password is required';
+            } elseif (strlen($data['admin_password']) < 8) {
+                $errors['admin_password'] = 'Password must be at least 8 characters';
+            }
+            if ($data['admin_password'] !== $password_confirm) {
+                $errors['admin_password_confirm'] = 'Passwords do not match';
+            }
         }
 
         if (!empty($errors)) {
@@ -142,6 +179,9 @@ class SetupController {
         }
 
         $config = $_SESSION['setup_config'];
+
+        // Preserve admin option
+        $adminOption = $config['admin_option'] ?? 'custom';
 
         // Site settings from step 2
         $config['app_name'] = request()->post('app_name');
@@ -187,8 +227,14 @@ class SetupController {
             // Clear setup session
             unset($_SESSION['setup_config'], $_SESSION['errors'], $_SESSION['old']);
 
-            // Set success message
-            flash('success', 'Setup completed successfully! You can now log in with your admin account.');
+            // Set success message based on admin option
+            if ($adminOption === 'default') {
+                flash('success', 'Setup completed! Login with username: admin, password: admin123. Please change these credentials after logging in.');
+            } elseif ($adminOption === 'skip') {
+                flash('success', 'Setup completed! You can now log in with your existing admin account.');
+            } else {
+                flash('success', 'Setup completed successfully! You can now log in with your admin account.');
+            }
 
             redirect(url('/login'));
         } catch (\Exception $e) {
@@ -313,6 +359,12 @@ PHP;
      * Create admin user
      */
     protected function createAdminUser($config) {
+        // Skip admin creation if user chose 'skip' option
+        $adminOption = $config['admin_option'] ?? 'custom';
+        if ($adminOption === 'skip') {
+            return;
+        }
+
         try {
             // Create admin user (migrations table should exist now)
             db()->table('users')->insert([
@@ -413,6 +465,13 @@ PHP;
             return false;
         }
 
+        // Check if there's a database connection error
+        $app = \App\Core\App::getInstance();
+        if ($app->has('db_connection_error')) {
+            // Database connection failed, allow reconfiguration
+            return false;
+        }
+
         $config = include $envPath;
 
         // Check if URL is empty or still localhost (default/unconfigured)
@@ -422,6 +481,19 @@ PHP;
             return false;
         }
 
-        return true;
+        // Try to verify database connection actually works
+        try {
+            $db = db();
+            if (!$db->getPdo()) {
+                return false; // No connection
+            }
+
+            // Try a simple query to check if database is accessible
+            $db->query("SELECT 1");
+            return true;
+        } catch (\Exception $e) {
+            // Database not accessible, need reconfiguration
+            return false;
+        }
     }
 }

@@ -114,65 +114,109 @@ $old = $old ?? [];
         <hr style="margin: 2rem 0; border: none; border-top: 1px solid #e9ecef;">
 
         <!-- Admin Account -->
-        <h3 style="margin-bottom: 1rem;">Create Admin Account</h3>
+        <h3 style="margin-bottom: 1rem;">Admin Account</h3>
 
-        <div class="form-group">
-            <label for="admin_username">Username</label>
-            <input
-                type="text"
-                id="admin_username"
-                name="admin_username"
-                value="<?= e($old['admin_username'] ?? '') ?>"
-                class="<?= isset($errors['admin_username']) ? 'input-error' : '' ?>"
-                placeholder="admin"
-                required>
-            <?php if (isset($errors['admin_username'])): ?>
-                <div class="error"><?= e($errors['admin_username']) ?></div>
-            <?php endif; ?>
-        </div>
+        <div class="form-group" x-data="{ adminOption: 'custom' }">
+            <div style="margin-bottom: 1rem;">
+                <label style="display: flex; align-items: center; cursor: pointer; margin-bottom: 0.5rem;">
+                    <input
+                        type="radio"
+                        name="admin_option"
+                        value="custom"
+                        x-model="adminOption"
+                        style="margin-right: 0.5rem;">
+                    <span>Create a new custom admin account</span>
+                </label>
 
-        <div class="form-group">
-            <label for="admin_email">Email Address</label>
-            <input
-                type="email"
-                id="admin_email"
-                name="admin_email"
-                value="<?= e($old['admin_email'] ?? '') ?>"
-                class="<?= isset($errors['admin_email']) ? 'input-error' : '' ?>"
-                placeholder="admin@example.com"
-                required>
-            <?php if (isset($errors['admin_email'])): ?>
-                <div class="error"><?= e($errors['admin_email']) ?></div>
-            <?php endif; ?>
-        </div>
+                <label style="display: flex; align-items: center; cursor: pointer; margin-bottom: 0.5rem;">
+                    <input
+                        type="radio"
+                        name="admin_option"
+                        value="default"
+                        x-model="adminOption"
+                        style="margin-right: 0.5rem;">
+                    <span>Use default admin account (username: admin, password: admin123)</span>
+                </label>
 
-        <div class="form-group">
-            <label for="admin_password">Password</label>
-            <input
-                type="password"
-                id="admin_password"
-                name="admin_password"
-                class="<?= isset($errors['admin_password']) ? 'input-error' : '' ?>"
-                placeholder="At least 8 characters"
-                required>
-            <?php if (isset($errors['admin_password'])): ?>
-                <div class="error"><?= e($errors['admin_password']) ?></div>
-            <?php endif; ?>
-            <div class="help-text">Use a strong password with at least 8 characters</div>
-        </div>
+                <label style="display: flex; align-items: center; cursor: pointer;">
+                    <input
+                        type="radio"
+                        name="admin_option"
+                        value="skip"
+                        x-model="adminOption"
+                        style="margin-right: 0.5rem;">
+                    <span>Skip - I already have an admin account in the database</span>
+                </label>
+            </div>
 
-        <div class="form-group">
-            <label for="admin_password_confirm">Confirm Password</label>
-            <input
-                type="password"
-                id="admin_password_confirm"
-                name="admin_password_confirm"
-                class="<?= isset($errors['admin_password_confirm']) ? 'input-error' : '' ?>"
-                placeholder="Re-enter your password"
-                required>
-            <?php if (isset($errors['admin_password_confirm'])): ?>
-                <div class="error"><?= e($errors['admin_password_confirm']) ?></div>
-            <?php endif; ?>
+            <div x-show="adminOption === 'default'" x-transition style="margin-top: 1rem;">
+                <div class="help-text">You can change the default credentials after logging in.</div>
+            </div>
+
+            <div x-show="adminOption === 'skip'" x-transition style="margin-top: 1rem;">
+                <div class="help-text">Choose this if you're reconfiguring and your database already has admin users.</div>
+            </div>
+
+            <div x-show="adminOption === 'custom'" x-transition style="margin-top: 1.5rem;">
+                <div class="form-group">
+                    <label for="admin_username">Username</label>
+                    <input
+                        type="text"
+                        id="admin_username"
+                        name="admin_username"
+                        value="<?= e($old['admin_username'] ?? '') ?>"
+                        class="<?= isset($errors['admin_username']) ? 'input-error' : '' ?>"
+                        placeholder="admin"
+                        x-bind:required="adminOption === 'custom'">
+                    <?php if (isset($errors['admin_username'])): ?>
+                        <div class="error"><?= e($errors['admin_username']) ?></div>
+                    <?php endif; ?>
+                </div>
+
+                <div class="form-group">
+                    <label for="admin_email">Email Address</label>
+                    <input
+                        type="email"
+                        id="admin_email"
+                        name="admin_email"
+                        value="<?= e($old['admin_email'] ?? '') ?>"
+                        class="<?= isset($errors['admin_email']) ? 'input-error' : '' ?>"
+                        placeholder="admin@example.com"
+                        x-bind:required="adminOption === 'custom'">
+                    <?php if (isset($errors['admin_email'])): ?>
+                        <div class="error"><?= e($errors['admin_email']) ?></div>
+                    <?php endif; ?>
+                </div>
+
+                <div class="form-group">
+                    <label for="admin_password">Password</label>
+                    <input
+                        type="password"
+                        id="admin_password"
+                        name="admin_password"
+                        class="<?= isset($errors['admin_password']) ? 'input-error' : '' ?>"
+                        placeholder="At least 8 characters"
+                        x-bind:required="adminOption === 'custom'">
+                    <?php if (isset($errors['admin_password'])): ?>
+                        <div class="error"><?= e($errors['admin_password']) ?></div>
+                    <?php endif; ?>
+                    <div class="help-text">Use a strong password with at least 8 characters</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="admin_password_confirm">Confirm Password</label>
+                    <input
+                        type="password"
+                        id="admin_password_confirm"
+                        name="admin_password_confirm"
+                        class="<?= isset($errors['admin_password_confirm']) ? 'input-error' : '' ?>"
+                        placeholder="Re-enter your password"
+                        x-bind:required="adminOption === 'custom'">
+                    <?php if (isset($errors['admin_password_confirm'])): ?>
+                        <div class="error"><?= e($errors['admin_password_confirm']) ?></div>
+                    <?php endif; ?>
+                </div>
+            </div>
         </div>
 
         <div class="setup-actions">

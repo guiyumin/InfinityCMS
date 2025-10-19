@@ -90,8 +90,18 @@ $app->bind('config', new App\Core\Config($env));
 $app->bind('request', new App\Core\Request());
 $app->bind('response', new App\Core\Response());
 
-// Bind database
-$app->bind('db', new App\Core\DB($env['database']));
+// Bind database - try to connect, but allow setup to handle failures
+try {
+    $app->bind('db', new App\Core\DB($env['database']));
+} catch (\Exception $e) {
+    // Database connection failed - this might be initial setup
+    // Create a placeholder DB instance without connection for setup process
+    $db = new App\Core\DB(); // Empty constructor won't connect
+    $app->bind('db', $db);
+
+    // Store the error for setup controller to handle
+    $app->bind('db_connection_error', $e->getMessage());
+}
 
 // Bind router
 $app->bind('router', new App\Core\Router());

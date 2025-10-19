@@ -53,6 +53,13 @@ class SetupMiddleware {
      * @return bool
      */
     protected function needsSetup() {
+        // Check if database connection failed
+        $app = \App\Core\App::getInstance();
+        if ($app->has('db_connection_error')) {
+            // Database connection failed, need to reconfigure
+            return true;
+        }
+
         // Check if already setup (via session flag)
         if (isset($_SESSION['_cms_setup_complete'])) {
             return false;
@@ -61,6 +68,12 @@ class SetupMiddleware {
         try {
             // Check if users table exists and has at least one user
             $db = db();
+
+            // Check if db actually has a connection
+            if (!$db->getPdo()) {
+                return true; // No connection, setup needed
+            }
+
             $users = $db->query("SELECT COUNT(*) as count FROM users");
 
             if ($users && $users[0]['count'] > 0) {
