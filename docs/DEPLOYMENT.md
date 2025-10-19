@@ -1,53 +1,79 @@
 # Infinity CMS - Deployment Guide
 
-## Quick Deployment Steps
+## Quick Start for Shared Hosting (Hostinger, cPanel, etc.)
 
-### 1. Upload to Server
+### Step 1: Upload Files
 
-**Zip File Location:**
+1. **Download** the Infinity CMS zip file
+2. **Login** to your hosting control panel (cPanel, Hostinger Panel, etc.)
+3. **Open File Manager**
+4. **Navigate** to your public_html folder
+5. **Upload** the zip file
+6. **Extract** the zip file
+7. **Delete** the zip file (optional, saves space)
 
-```
-/Users/yumin/ventures/infinity-cms-deployment-YYYYMMDD-HHMMSS.zip
-```
+### Step 2: Create Database
 
-**Upload via:**
+1. **In your hosting control panel**, find "MySQL Databases"
+2. **Create a new database** (remember the name)
+3. **Create a database user** (remember username & password)
+4. **Add user to database** with ALL privileges
 
-- FTP/SFTP to your web hosting
-- SCP: `scp infinity-cms-deployment-*.zip user@server:/path/to/webroot/`
-- cPanel File Manager
+### Step 3: Run Setup Wizard
 
-### 2. Extract on Server
+1. **Visit your website** in a browser
+2. The **setup wizard will automatically start**
+3. **Enter your database details**:
+   - Database name (from Step 2)
+   - Database username (from Step 2)
+   - Database password (from Step 2)
+   - Host is usually "localhost"
+4. **Create your admin account**
+5. **Done!** Your site is ready
+
+---
+
+## Advanced Deployment (For Developers)
+
+### 1. Upload via SSH/FTP
 
 ```bash
-# SSH into your server
+# Via SCP
+scp infinity-cms.zip user@server:/path/to/webroot/
+
+# Via FTP
+# Use FileZilla or similar FTP client
+```
+
+### 2. Extract and Configure
+
+```bash
+# SSH into server
 ssh user@your-server.com
 
 # Navigate to web root
 cd /path/to/webroot
 
-# Extract zip
-unzip infinity-cms-deployment-*.zip
-
-# Move files from subfolder to root (if needed)
-mv infinity-cms/* .
-mv infinity-cms/.htaccess .
-mv infinity-cms/.env.php .
-rm -rf infinity-cms
+# Extract files
+unzip infinity-cms.zip
 
 # Set permissions
 chmod -R 755 .
 chmod -R 777 storage/
-chmod 644 .env.php
+
+# Copy config example (optional - setup wizard will create it)
+cp config.php.example config.php
+# Edit config.php with your database details
 ```
 
-### 3. Configure Environment
+### 3. Configure Environment (Optional)
 
-**Edit `.env.php`:**
+The setup wizard will create this for you, but you can manually create `config.php`:
 
 ```php
 'app' => [
-    'url' => 'https://your-domain.com',  // Change this!
-    'debug' => false,  // IMPORTANT: Set to false in production!
+    'url' => 'https://your-domain.com',
+    'debug' => false,  // Always false in production
 ],
 
 'database' => [
@@ -95,17 +121,17 @@ exit;
 
 **✅ Production Checklist:**
 
-- [ ] Set `debug => false` in `.env.php`
+- [ ] Set `debug => false` in `config.php`
 - [ ] Change default admin password
 - [ ] Set proper file permissions (755 for folders, 644 for files)
 - [ ] Set `storage/` to 777 (or 755 with proper ownership)
-- [ ] Ensure `.env.php` is not publicly accessible
+- [ ] Ensure `config.php` is not publicly accessible
 - [ ] Enable HTTPS (SSL certificate)
 - [ ] Configure `session.secure => true` if using HTTPS
 - [ ] Remove or secure `/setup` route (if implemented)
 - [ ] Review `.htaccess` for security headers
 - [ ] Set up regular backups for `database/` folder
-- [ ] Change CSRF secret in `.env.php`
+- [ ] Change CSRF secret in `config.php`
 
 ---
 
@@ -185,7 +211,7 @@ infinity-cms/
 │   └── uploads/
 ├── config/             ← Configuration files
 ├── bootstrap/          ← Application bootstrap
-└── .env.php           ← Environment config (SECURE THIS!)
+└── config.php         ← Environment config (SECURE THIS!)
 ```
 
 ---
@@ -203,7 +229,7 @@ infinity-cms/
 ### 2. Configure Site Settings
 
 1. Login to admin dashboard
-2. Update site name in `.env.php`
+2. Update site name in `config.php`
 3. Change admin password
 4. Test migrations page
 5. Review sample blog posts
@@ -247,7 +273,7 @@ chmod 777 storage/
 # Test MySQL connection
 mysql -u your_username -p -h localhost your_database
 
-# Check .env.php has correct MySQL credentials
+# Check config.php has correct MySQL credentials
 ```
 
 ### Issue: "500 Internal Server Error"
@@ -315,7 +341,7 @@ gunzip < backups/db-YYYYMMDD.sql.gz | mysql -u your_username -p your_database
 
 1. Backup current installation and database
 2. Extract new version to temporary folder
-3. Copy `.env.php` from old to new
+3. Copy `config.php` from old to new
 4. Copy `storage/uploads/` from old to new
 5. Replace old files with new
 6. Run new migrations: `/admin/migrations`

@@ -53,11 +53,23 @@ class SetupMiddleware {
      * @return bool
      */
     protected function needsSetup() {
+        // First check if config.php exists
+        if (defined('CONFIG_MISSING') && CONFIG_MISSING === true) {
+            return true; // No config file, definitely needs setup
+        }
+
         // Check if database connection failed
         $app = \App\Core\App::getInstance();
         if ($app->has('db_connection_error')) {
-            // Database connection failed, need to reconfigure
-            return true;
+            // Database connection failed, could be wrong credentials
+            // Only redirect to setup if config is missing
+            // Otherwise show error page
+            if (CONFIG_MISSING) {
+                return true;
+            }
+            // Config exists but database connection failed - this is an error
+            // Don't redirect to setup, let the error handler deal with it
+            return false;
         }
 
         // Check if already setup (via session flag)
@@ -71,7 +83,7 @@ class SetupMiddleware {
 
             // Check if db actually has a connection
             if (!$db->getPdo()) {
-                return true; // No connection, setup needed
+                return CONFIG_MISSING; // Only need setup if config is missing
             }
 
             $users = $db->query("SELECT COUNT(*) as count FROM users");
@@ -85,8 +97,9 @@ class SetupMiddleware {
             // No users found, setup needed
             return true;
         } catch (\Exception $e) {
-            // Database error - likely tables don't exist, setup needed
-            return true;
+            // Database error - likely tables don't exist
+            // Only redirect to setup if this is initial setup
+            return CONFIG_MISSING;
         }
     }
 

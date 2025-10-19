@@ -29,7 +29,7 @@ class SetupController {
 
         // Try to load existing configuration for pre-filling (if config exists)
         // This allows reconfiguration without showing error messages
-        $envPath = base_path('.env.php');
+        $envPath = base_path('config.php');
         if (file_exists($envPath)) {
             $config = include $envPath;
             if (isset($config['database']) && empty($data['old'])) {
@@ -244,10 +244,10 @@ class SetupController {
     }
 
     /**
-     * Write .env.php configuration file
+     * Write config.php configuration file
      */
     protected function writeEnvFile($config) {
-        $envPath = base_path('.env.php');
+        $envPath = base_path('config.php');
 
         // MySQL Database configuration (always MySQL)
         $dbConfig = <<<PHP
@@ -463,25 +463,40 @@ PHP;
      * Check if application is already configured
      */
     protected function isConfigured() {
-        $envPath = base_path('.env.php');
+        // If CONFIG_MISSING is defined and true, definitely not configured
+        if (defined('CONFIG_MISSING') && CONFIG_MISSING === true) {
+            return false;
+        }
+
+        $envPath = base_path('config.php');
 
         if (!file_exists($envPath)) {
             return false;
         }
 
-        // Check if there's a database connection error
-        $app = \App\Core\App::getInstance();
-        if ($app->has('db_connection_error')) {
-            // Database connection failed, allow reconfiguration
+        $config = include $envPath;
+
+        // Check if URL is empty or still has placeholder values
+        if (!isset($config['app']['url']) ||
+            empty($config['app']['url']) ||
+            $config['app']['url'] === 'https://your-domain.com' ||
+            $config['app']['url'] === 'http://localhost') {
             return false;
         }
 
-        $config = include $envPath;
+        // Check if database has placeholder values
+        if (!isset($config['database']['database']) ||
+            empty($config['database']['database']) ||
+            $config['database']['database'] === 'your_database_name' ||
+            $config['database']['username'] === 'your_database_user') {
+            return false;
+        }
 
-        // Check if URL is empty or still localhost (default/unconfigured)
-        if (!isset($config['app']['url']) ||
-            empty($config['app']['url']) ||
-            $config['app']['url'] === 'http://localhost') {
+        // Check if there's a database connection error stored
+        $app = \App\Core\App::getInstance();
+        if ($app->has('db_connection_error')) {
+            // If we have CONFIG_MISSING, allow setup
+            // Otherwise it's a real error (config exists but DB connection failed)
             return false;
         }
 
@@ -494,9 +509,16 @@ PHP;
 
             // Try a simple query to check if database is accessible
             $db->query("SELECT 1");
-            return true;
+
+            // Check if users table exists
+            $users = $db->query("SELECT COUNT(*) as count FROM users");
+            if ($users && $users[0]['count'] > 0) {
+                return true; // Fully configured
+            }
+
+            return false; // Tables not setup yet
         } catch (\Exception $e) {
-            // Database not accessible, need reconfiguration
+            // Database not accessible or tables don't exist
             return false;
         }
     }

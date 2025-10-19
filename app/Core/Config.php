@@ -16,7 +16,7 @@ class Config {
     /**
      * Constructor
      *
-     * @param array $config Configuration array from .env.php
+     * @param array $config Configuration array from config.php
      */
     public function __construct(array $config = []) {
         $this->config = $config;

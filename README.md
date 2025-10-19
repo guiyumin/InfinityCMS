@@ -21,6 +21,17 @@ A modern, lightweight CMS built with pure PHP, HTMX, and Alpine.js. No Composer,
 
 ## Installation
 
+### For Users (Shared Hosting like Hostinger, cPanel, etc.)
+
+1. **Download** the Infinity CMS zip file
+2. **Upload** all files to your web hosting (usually `public_html` folder)
+3. **Create a MySQL database** in your hosting control panel
+4. **Visit your website** - The setup wizard will automatically start
+5. **Follow the setup wizard** - Enter your database details and create your admin account
+6. **Done!** Your CMS is ready to use
+
+### For Developers
+
 1. Clone the repository
 
 ```bash
@@ -28,9 +39,17 @@ git clone <repo-url> infinity-cms
 cd infinity-cms
 ```
 
-2. Set up your web server to point to the `public` directory
+2. Copy the example configuration file
 
-3. Visit your site in a browser!
+```bash
+cp config.php.example config.php
+```
+
+3. Edit `config.php` with your database credentials and site URL
+
+4. Set up your web server to point to the `public` directory
+
+5. Visit your site in a browser to complete setup
 
 ## Directory Structure
 
@@ -38,7 +57,7 @@ cd infinity-cms
 cms/
 ├─ autoloader.php         # PSR-4 autoloader
 ├─ functions.php          # Global helper functions
-├─ .env.php              # Environment configuration
+├─ config.php            # Environment configuration
 ├─ bootstrap/
 │  └─ app.php            # Application bootstrap
 ├─ public/
@@ -155,7 +174,7 @@ my-theme/
    └─ js/
 ```
 
-3. Update `.env.php` to use your theme:
+3. Update `config.php` to use your theme:
 
 ```php
 'app' => [

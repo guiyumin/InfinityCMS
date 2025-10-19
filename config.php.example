@@ -1,47 +1,47 @@
 <?php
 /**
- * Environment Configuration
- * 环境配置文件
+ * Environment Configuration Example
  *
- * 注意：此文件包含敏感信息，不应提交到版本控制
+ * Copy this file to config.php and update with your actual values
+ * DO NOT commit config.php to version control
  */
 
 return [
-    // 应用配置
+    // Application Configuration
     'app' => [
-        'name' => 'Infinity CMS',
-        'url' => '',
-        'debug' => true,
+        'name' => 'Your Site Name',
+        'url' => 'https://your-domain.com',
+        'debug' => false, // Set to true for development
         'theme' => 'infinity',
-        'timezone' => 'America/Los_Angeles',
+        'timezone' => 'UTC',
     ],
 
-    // 数据库配置
+    // Database Configuration
     'database' => [
         'driver' => 'mysql',
         'host' => 'localhost',
         'port' => 3306,
         'database' => 'infinity_cms',
-        'username' => 'root',
-        'password' => '',
+        'username' => 'infinity_cms',
+        'password' => 'your_database_password',
         'charset' => 'utf8mb4',
     ],
 
-    // Session 配置
+    // Session Configuration
     'session' => [
         'lifetime' => 120, // minutes
         'name' => 'infinity_cms_session',
         'path' => '/',
-        'secure' => false, // 生产环境建议设为 true（需要 HTTPS）
+        'secure' => false, // Set to true in production with HTTPS
         'httponly' => true,
     ],
 
-    // 安全配置
+    // Security Configuration
     'security' => [
         'csrf_enabled' => true,
     ],
 
-    // 文件上传配置
+    // File Upload Configuration
     'upload' => [
         'max_size' => 5 * 1024 * 1024, // 5MB
         'allowed_types' => ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx'],

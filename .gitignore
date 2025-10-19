@@ -1,7 +1,7 @@
 # Infinity CMS - Git Ignore File
 
 # Environment & Configuration
-.env.php
+config.php
 .env.local.php
 config.local.php
 

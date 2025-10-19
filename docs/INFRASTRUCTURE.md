@@ -170,7 +170,7 @@ public function error($message = '', $details = '') {
 
 ### Debug Mode Behavior:
 
-**File:** `.env.php`
+**File:** `config.php`
 
 ```php
 'app' => [

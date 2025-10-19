@@ -16,7 +16,50 @@ $loader->register();
 require __DIR__ . '/../functions.php';
 
 // 3. Load environment configuration
-$env = require __DIR__ . '/../.env.php';
+$configPath = __DIR__ . '/../config.php';
+if (!file_exists($configPath)) {
+    // No config.php exists, redirect to setup
+    // Use minimal configuration for setup process
+    $env = [
+        'app' => [
+            'name' => 'Infinity CMS',
+            'url' => '',
+            'debug' => true,
+            'theme' => 'infinity',
+            'timezone' => 'UTC',
+        ],
+        'database' => [
+            'driver' => 'mysql',
+            'host' => '',
+            'port' => 3306,
+            'database' => 'infinity_cms',
+            'username' => 'infinity_cms',
+            'password' => '',
+            'charset' => 'utf8mb4',
+        ],
+        'session' => [
+            'lifetime' => 20160, // 2 weeks
+            'name' => 'infinity_cms_session',
+            'path' => '/',
+            'secure' => false,
+            'httponly' => true,
+        ],
+        'security' => [
+            'csrf_enabled' => true,
+        ],
+        'upload' => [
+            'max_size' => 5 * 1024 * 1024,
+            'allowed_types' => ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx'],
+            'path' => __DIR__ . '/../storage/uploads',
+        ],
+    ];
+
+    // Mark that config doesn't exist
+    define('CONFIG_MISSING', true);
+} else {
+    $env = require $configPath;
+    define('CONFIG_MISSING', false);
+}
 
 // 4. Set error reporting
 if ($env['app']['debug']) {
@@ -90,17 +133,34 @@ $app->bind('config', new App\Core\Config($env));
 $app->bind('request', new App\Core\Request());
 $app->bind('response', new App\Core\Response());
 
-// Bind database - try to connect, but allow setup to handle failures
+// Bind database - try to connect, but handle failures appropriately
 try {
     $app->bind('db', new App\Core\DB($env['database']));
 } catch (\Exception $e) {
-    // Database connection failed - this might be initial setup
-    // Create a placeholder DB instance without connection for setup process
-    $db = new App\Core\DB(); // Empty constructor won't connect
-    $app->bind('db', $db);
+    // Database connection failed
+    if (CONFIG_MISSING) {
+        // No config file, this is expected during setup
+        // Create a placeholder DB instance without connection for setup process
+        $db = new App\Core\DB(); // Empty constructor won't connect
+        $app->bind('db', $db);
+        $app->bind('db_connection_error', $e->getMessage());
+    } else {
+        // Config exists but database connection failed - this is a real error
+        // Store the error but don't create placeholder DB
+        $app->bind('db_connection_error', $e->getMessage());
 
-    // Store the error for setup controller to handle
-    $app->bind('db_connection_error', $e->getMessage());
+        // Show error page immediately
+        http_response_code(500);
+        if ($env['app']['debug']) {
+            echo "<h1>Database Connection Failed</h1>";
+            echo "<pre>" . htmlspecialchars($e->getMessage()) . "</pre>";
+            echo "<p>Please check your database configuration in config.php</p>";
+        } else {
+            echo "<h1>Internal Server Error</h1>";
+            echo "<p>The database connection failed. Please contact the administrator.</p>";
+        }
+        exit;
+    }
 }
 
 // Bind router
