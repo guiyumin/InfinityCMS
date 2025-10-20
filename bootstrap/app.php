@@ -131,7 +131,7 @@ session_start([
 // 7. Initialize core service container
 $app = App\Core\App::getInstance();
 
-// Bind configuration service
+// Bind configuration service (init is called automatically in constructor)
 $app->bind('config', new App\Core\Config());
 
 // Bind request and response

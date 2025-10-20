@@ -8,27 +8,70 @@ namespace App\Core;
  */
 class Config {
     /**
-     * Configuration data
+     * Configuration data from config.php file
      * @var array
      */
-    protected $config = [];
+    protected $file_configs = [];
 
     /**
-     * Root path for the application
-     * @var string
+     * Configuration data from database settings table
+     * @var array
      */
+    protected $db_configs = [];
 
     /**
      * Constructor
-     * Automatically loads configuration from root config.php
+     * Automatically initializes configuration from file and database
      */
     public function __construct() {
+        $this->init();
+    }
+
+    /**
+     * Initialize configuration
+     * Reads root config.php and loads all settings from database
+     *
+     * @return void
+     */
+    public function init() {
+        // Load file configs
         $configPath = root_path() . '/config.php';
 
         if (file_exists($configPath)) {
-            $this->config = require $configPath;
+            // Include the config file and get the returned array
+            $loadedConfig = include $configPath;
+            $this->file_configs = $loadedConfig;
         } else {
-            $this->config = [];
+            $this->file_configs = [];
+        }
+
+        // Load database settings
+        try {
+            $app = App::getInstance();
+            if (!$app->has('db')) {
+                $this->db_configs = [];
+                return;
+            }
+
+             $db = $app->get('db');
+
+            // Check if settings table exists
+            $tables = $db->query("SHOW TABLES LIKE 'settings'");
+
+            if (empty($tables)) {
+                $this->db_configs = [];
+                return;    
+            }
+
+            $results = $db->query("SELECT setting_key, setting_value FROM settings");
+
+            foreach ($results as $row) {
+                $this->db_configs[$row['setting_key']] = $row['setting_value'];
+            }
+        } catch (\Exception $e) {
+            // Database not available or settings table doesn't exist yet
+            // This is normal during setup or if database is not configured
+            $this->db_configs = [];
         }
     }
 
@@ -46,7 +89,7 @@ class Config {
      */
     public function get($key, $default = null) {
         $keys = explode('.', $key);
-        $value = $this->config;
+        $value = array_merge($this->file_configs, $this->db_configs);
 
         foreach ($keys as $segment) {
             if (!is_array($value) || !array_key_exists($segment, $value)) {
@@ -68,7 +111,7 @@ class Config {
      */
     public function set($key, $value) {
         $keys = explode('.', $key);
-        $config = &$this->config;
+        $config = &$this->file_configs;
 
         while (count($keys) > 1) {
             $key = array_shift($keys);
@@ -90,7 +133,7 @@ class Config {
      */
     public function has($key) {
         $keys = explode('.', $key);
-        $value = $this->config;
+        $value = array_merge($this->file_configs, $this->db_configs);
 
         foreach ($keys as $segment) {
             if (!is_array($value) || !array_key_exists($segment, $value)) {
@@ -109,6 +152,103 @@ class Config {
      * @return array
      */
     public function all() {
-        return $this->config;
+        return array_merge($this->file_configs, $this->db_configs);
+    }
+
+    /**
+     * Get a setting from database
+     * 从数据库获取设置
+     *
+     * @param string $key Setting key
+     * @param mixed $default Default value if not found
+     * @return mixed
+     */
+    public function getSetting($key, $default = null) {
+        return $this->db_configs[$key] ?? $default;
+    }
+
+    /**
+     * Set a setting in database
+     * 保存设置到数据库
+     *
+     * @param string $key Setting key
+     * @param mixed $value Setting value
+     * @param string|null $description Optional description
+     * @return bool
+     */
+    public function setSetting($key, $value, $description = null) {
+        try {
+            $app = App::getInstance();
+            if (!$app->has('db')) {
+                return false;
+            }
+
+            $db = $app->get('db');
+
+            // Check if setting exists
+            $existing = $db->query(
+                "SELECT id FROM settings WHERE setting_key = ?",
+                [$key]
+            );
+
+            if (!empty($existing)) {
+                // Update existing
+                $db->query(
+                    "UPDATE settings SET setting_value = ?, updated_at = NOW() WHERE setting_key = ?",
+                    [$value, $key]
+                );
+            } else {
+                // Insert new
+                $db->query(
+                    "INSERT INTO settings (setting_key, setting_value, description) VALUES (?, ?, ?)",
+                    [$key, $value, $description]
+                );
+            }
+
+            // Update cache
+            $this->db_configs[$key] = $value;
+
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Get all database settings
+     * 获取所有数据库设置
+     *
+     * @return array
+     */
+    public function getAllSettings() {
+        return $this->db_configs;
+    }
+
+    /**
+     * Delete a setting from database
+     * 从数据库删除设置
+     *
+     * @param string $key Setting key
+     * @return bool
+     */
+    public function deleteSetting($key) {
+        try {
+            $app = App::getInstance();
+            if (!$app->has('db')) {
+                return false;
+            }
+
+            $db = $app->get('db');
+            $db->query("DELETE FROM settings WHERE setting_key = ?", [$key]);
+
+            // Update cache
+            if (isset($this->db_configs[$key])) {
+                unset($this->db_configs[$key]);
+            }
+
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 }

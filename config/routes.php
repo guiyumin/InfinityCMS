@@ -86,6 +86,14 @@ $router->group(['prefix' => '/admin', 'middleware' => 'admin'], function($router
     $router->post('/uploads/create-folder', 'Admin/UploadsController@createFolder');
     $router->post('/uploads/delete', 'Admin/UploadsController@delete');
     $router->get('/uploads/file-info', 'Admin/UploadsController@fileInfo');
+
+    // Settings Management
+    $router->get('/settings', 'Admin/SettingsController@index');
+    $router->get('/settings/create', 'Admin/SettingsController@create');
+    $router->post('/settings', 'Admin/SettingsController@store');
+    $router->get('/settings/edit', 'Admin/SettingsController@edit');
+    $router->post('/settings/update', 'Admin/SettingsController@update');
+    $router->post('/settings/delete', 'Admin/SettingsController@delete');
 });
 
 // ==========================================
