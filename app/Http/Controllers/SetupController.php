@@ -14,8 +14,14 @@ class SetupController {
      * Show setup wizard
      */
     public function index() {
+        // Debug: Check configuration status
+        $step1 = $this->isStep1Configured();
+        $step2 = $this->isStep2Configured();
+        $step3 = $this->isStep3Configured();
+        $isConfigured = $this->isConfigured();
+
         // Check if already configured
-        if ($this->isConfigured()) {
+        if ($isConfigured) {
             redirect(url('/'));
             return;
         }
@@ -36,7 +42,7 @@ class SetupController {
 
         // Try to load existing configuration for pre-filling (if config exists)
         // This allows reconfiguration without showing error messages
-        $envPath = base_path('config.php');
+        $envPath = root_path('config.php');
         if (file_exists($envPath)) {
             $config = include $envPath;
             if (isset($config['database']) && empty($data['old'])) {
@@ -128,10 +134,8 @@ class SetupController {
             return;
         }
 
-        // Write initial configuration file
+        // Test database connection and run migrations
         try {
-            $this->writeEnvFile($data);
-
             // Reload database connection with new configuration
             $this->reloadDatabase($data);
 
@@ -154,6 +158,7 @@ class SetupController {
 
             // Store in session for step 2
             $_SESSION['setup_config'] = $data;
+            $_SESSION['setup_step1_complete'] = true;
             unset($_SESSION['errors'], $_SESSION['old'], $_SESSION['migration_errors']);
 
             redirect(url('/setup?step=2'));
@@ -224,6 +229,7 @@ class SetupController {
 
         // Store updated config in session
         $_SESSION['setup_config'] = $config;
+        $_SESSION['setup_step2_complete'] = true;
 
         // Proceed to step 3
         redirect(url('/setup?step=3'));
@@ -267,9 +273,9 @@ class SetupController {
             return;
         }
 
-        // Update configuration file with site settings
+        // Write final configuration file with all setup data
         try {
-            $this->writeEnvFile($config);
+            $this->writeRootConfigFile();
 
             // Reload environment to use updated config
             $this->reloadDatabase($config);
@@ -280,8 +286,19 @@ class SetupController {
             // Create admin user (migrations already ran in step 1)
             $this->createAdminUser($config);
 
+            // Mark step 3 as complete
+            $_SESSION['setup_step3_complete'] = true;
+
             // Clear setup session
-            unset($_SESSION['setup_config'], $_SESSION['errors'], $_SESSION['old'], $_SESSION['migration_errors']);
+            unset(
+                $_SESSION['setup_config'],
+                $_SESSION['setup_step1_complete'],
+                $_SESSION['setup_step2_complete'],
+                $_SESSION['setup_step3_complete'],
+                $_SESSION['errors'],
+                $_SESSION['old'],
+                $_SESSION['migration_errors']
+            );
 
             // Set success message based on admin option
             if ($adminOption === 'default') {
@@ -300,12 +317,18 @@ class SetupController {
     }
 
     /**
-     * Write config.php configuration file
+     * Write root config.php file using data from setup session
      */
-    protected function writeEnvFile($config) {
-        $envPath = base_path('config.php');
+    protected function writeRootConfigFile() {
+        // Get all setup data from session
+        if (!isset($_SESSION['setup_config'])) {
+            throw new \Exception('Setup configuration not found in session');
+        }
 
-        // Ensure default values
+        $config = $_SESSION['setup_config'];
+        $envPath = root_path('config.php');
+
+        // Extract values from config
         $appName = $config['app_name'] ?? 'Infinity CMS';
         $appUrl = $config['app_url'] ?? '';
         $theme = $config['theme'] ?? 'infinity';
@@ -548,7 +571,32 @@ PHP;
     }
 
     /**
-     * Check if application is already configured
+     * Check if Step 1 (Database Setup) is configured
+     */
+    protected function isStep1Configured() {
+        // Check session flag first
+        return isset($_SESSION['setup_step1_complete']);
+    }
+
+    /**
+     * Check if Step 2 (Admin Account) is configured
+     */
+    protected function isStep2Configured() {
+        // Check session flag
+        return isset($_SESSION['setup_step2_complete']);
+    }
+
+    /**
+     * Check if Step 3 (Site Settings) is configured
+     */
+    protected function isStep3Configured() {
+        // Check session flag
+        return isset($_SESSION['setup_step3_complete']);
+    }
+
+    /**
+     * Check if application is fully configured
+     * All 3 steps must be complete
      */
     protected function isConfigured() {
         // If CONFIG_MISSING is defined and true, definitely not configured
@@ -556,58 +604,15 @@ PHP;
             return false;
         }
 
-        $envPath = base_path('config.php');
-
-        if (!file_exists($envPath)) {
-            return false;
-        }
-
-        $config = include $envPath;
-
-        // Check if URL is empty or still has placeholder values
-        if (!isset($config['app']['url']) ||
-            empty($config['app']['url']) ||
-            $config['app']['url'] === 'https://your-domain.com' ||
-            $config['app']['url'] === 'http://localhost') {
-            return false;
-        }
-
-        // Check if database has placeholder values
-        if (!isset($config['database']['database']) ||
-            empty($config['database']['database']) ||
-            $config['database']['database'] === 'your_database_name' ||
-            $config['database']['username'] === 'your_database_user') {
-            return false;
-        }
-
         // Check if there's a database connection error stored
         $app = \App\Core\App::getInstance();
         if ($app->has('db_connection_error')) {
-            // If we have CONFIG_MISSING, allow setup
-            // Otherwise it's a real error (config exists but DB connection failed)
             return false;
         }
 
-        // Try to verify database connection actually works
-        try {
-            $db = db();
-            if (!$db->getPdo()) {
-                return false; // No connection
-            }
-
-            // Try a simple query to check if database is accessible
-            $db->query("SELECT 1");
-
-            // Check if users table exists
-            $users = $db->query("SELECT COUNT(*) as count FROM users");
-            if ($users && $users[0]['count'] > 0) {
-                return true; // Fully configured
-            }
-
-            return false; // Tables not setup yet
-        } catch (\Exception $e) {
-            // Database not accessible or tables don't exist
-            return false;
-        }
+        // All three steps must be configured
+        return $this->isStep1Configured()
+            && $this->isStep2Configured()
+            && $this->isStep3Configured();
     }
 }

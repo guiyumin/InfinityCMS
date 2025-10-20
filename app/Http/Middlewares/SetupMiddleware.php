@@ -77,6 +77,14 @@ class SetupMiddleware {
             return false;
         }
 
+        // If currently in setup wizard (any step flag exists), needs setup to continue
+        if (isset($_SESSION['setup_step1_complete']) ||
+            isset($_SESSION['setup_step2_complete']) ||
+            isset($_SESSION['setup_step3_complete']) ||
+            isset($_SESSION['setup_config'])) {
+            return true;
+        }
+
         try {
             // Check if users table exists and has at least one user
             $db = db();
