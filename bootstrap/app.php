@@ -132,7 +132,7 @@ session_start([
 $app = App\Core\App::getInstance();
 
 // Bind configuration service
-$app->bind('config', new App\Core\Config($env));
+$app->bind('config', new App\Core\Config());
 
 // Bind request and response
 $app->bind('request', new App\Core\Request());

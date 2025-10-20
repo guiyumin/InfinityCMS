@@ -14,12 +14,22 @@ class Config {
     protected $config = [];
 
     /**
-     * Constructor
-     *
-     * @param array $config Configuration array from config.php
+     * Root path for the application
+     * @var string
      */
-    public function __construct(array $config = []) {
-        $this->config = $config;
+
+    /**
+     * Constructor
+     * Automatically loads configuration from root config.php
+     */
+    public function __construct() {
+        $configPath = root_path() . '/config.php';
+
+        if (file_exists($configPath)) {
+            $this->config = require $configPath;
+        } else {
+            $this->config = [];
+        }
     }
 
     /**
