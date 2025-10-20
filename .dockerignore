@@ -1,0 +1,46 @@
+# Git files
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+docs/
+*.md
+
+# Development files
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Config files (should be mounted or set via env)
+config.php
+
+# Storage (should be mounted as volume)
+storage/cache/*
+storage/logs/*
+storage/uploads/*
+
+# Temporary files
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Archives
+*.zip
+*.tar
+*.gz
+cms.zip
+
+# Docker files
+Dockerfile
+.dockerignore
+compose.development.yml
+docker-compose.yml
+
+# IDE
+.idea/
+*.iml

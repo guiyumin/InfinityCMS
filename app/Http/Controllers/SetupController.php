@@ -307,7 +307,7 @@ class SetupController {
 
         // Ensure default values
         $appName = $config['app_name'] ?? 'Infinity CMS';
-        $appUrl = $config['app_url'] ?? 'http://localhost';
+        $appUrl = $config['app_url'] ?? '';
         $theme = $config['theme'] ?? 'infinity';
         $timezone = $config['timezone'] ?? 'UTC';
 
