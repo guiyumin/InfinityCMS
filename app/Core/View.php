@@ -32,7 +32,7 @@ class View {
      */
     public function __construct($theme = 'default') {
         $this->theme = $theme;
-        $this->themePath = base_path("themes/{$theme}");
+        $this->themePath = root_path("themes/{$theme}");
     }
 
     /**
@@ -223,7 +223,7 @@ class View {
      */
     public function setTheme($theme) {
         $this->theme = $theme;
-        $this->themePath = base_path("themes/{$theme}");
+        $this->themePath = root_path("themes/{$theme}");
     }
 
     /**

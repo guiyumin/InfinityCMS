@@ -18,12 +18,12 @@ class AssetPublisher {
     public static function publish($theme = null, $force = false) {
         // Determine if publishing admin or theme assets
         if ($theme === 'admin' || $theme === null) {
-            $sourcePath = base_path("app/Views/admin/assets");
-            $targetPath = base_path("public/assets/admin");
+            $sourcePath = root_path("app/Views/admin/assets");
+            $targetPath = root_path("public/assets/admin");
             $assetType = 'Admin';
         } else {
-            $sourcePath = base_path("themes/{$theme}/assets");
-            $targetPath = base_path("public/assets/themes/{$theme}");
+            $sourcePath = root_path("themes/{$theme}/assets");
+            $targetPath = root_path("public/assets/themes/{$theme}");
             $assetType = "Theme '{$theme}'";
         }
 
@@ -78,7 +78,7 @@ class AssetPublisher {
         }
 
         // Publish theme assets
-        $themesPath = base_path('themes');
+        $themesPath = root_path('themes');
         if (!is_dir($themesPath)) {
             return $results;
         }
@@ -107,10 +107,10 @@ class AssetPublisher {
     public static function clean($theme) {
         // Determine path based on whether it's admin or theme assets
         if ($theme === 'admin') {
-            $targetPath = base_path("public/assets/admin");
+            $targetPath = root_path("public/assets/admin");
             $assetType = 'admin';
         } else {
-            $targetPath = base_path("public/assets/themes/{$theme}");
+            $targetPath = root_path("public/assets/themes/{$theme}");
             $assetType = "theme '{$theme}'";
         }
 

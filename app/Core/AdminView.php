@@ -30,7 +30,7 @@ class AdminView {
      * Constructor
      */
     public function __construct() {
-        $this->viewsPath = base_path('app/Views/admin');
+        $this->viewsPath = root_path('app/Views/admin');
     }
 
     /**

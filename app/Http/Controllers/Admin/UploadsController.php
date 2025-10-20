@@ -25,7 +25,7 @@ class UploadsController {
         $search = request()->get('search', '');
         $path = request()->get('path', '');
 
-        $basePath = base_path($this->uploadDir);
+        $basePath = root_path($this->uploadDir);
         $currentPath = $path ? $basePath . '/' . $path : $basePath;
 
         // Ensure upload directory exists
@@ -86,7 +86,7 @@ class UploadsController {
         $year = date('Y');
         $month = date('m');
         $uploadPath = $targetPath ? "{$this->uploadDir}/{$targetPath}" : "{$this->uploadDir}/{$year}/{$month}";
-        $fullUploadPath = base_path($uploadPath);
+        $fullUploadPath = root_path($uploadPath);
 
         if (!is_dir($fullUploadPath)) {
             mkdir($fullUploadPath, 0755, true);
@@ -135,7 +135,7 @@ class UploadsController {
         // Sanitize folder name
         $folderName = preg_replace('/[^a-zA-Z0-9_-]/', '', $folderName);
 
-        $basePath = base_path($this->uploadDir);
+        $basePath = root_path($this->uploadDir);
         $targetPath = $currentPath ? $basePath . '/' . $currentPath . '/' . $folderName : $basePath . '/' . $folderName;
 
         if (file_exists($targetPath)) {
@@ -162,7 +162,7 @@ class UploadsController {
             return;
         }
 
-        $basePath = base_path($this->uploadDir);
+        $basePath = root_path($this->uploadDir);
         $itemPath = $currentPath ? $basePath . '/' . $currentPath . '/' . $item : $basePath . '/' . $item;
 
         if (!file_exists($itemPath)) {
@@ -205,7 +205,7 @@ class UploadsController {
             return;
         }
 
-        $basePath = base_path($this->uploadDir);
+        $basePath = root_path($this->uploadDir);
         $filePath = $path ? $basePath . '/' . $path . '/' . $file : $basePath . '/' . $file;
 
         if (!file_exists($filePath) || is_dir($filePath)) {
@@ -273,14 +273,14 @@ class UploadsController {
             ];
 
             if (!$isDir) {
-                $relativePath = str_replace(base_path() . '/', '', $fullPath);
+                $relativePath = str_replace(root_path() . '/', '', $fullPath);
                 $item['url'] = url($relativePath);
 
                 // Add thumbnail URL for images
                 if ($this->isImage($file)) {
                     $thumbPath = dirname($fullPath) . '/thumbnails/' . $file;
                     if (file_exists($thumbPath)) {
-                        $thumbRelativePath = str_replace(base_path() . '/', '', $thumbPath);
+                        $thumbRelativePath = str_replace(root_path() . '/', '', $thumbPath);
                         $item['thumbnail'] = url($thumbRelativePath);
                     } else {
                         $item['thumbnail'] = $item['url'];

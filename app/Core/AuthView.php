@@ -19,7 +19,7 @@ class AuthView {
      * Constructor
      */
     public function __construct() {
-        $this->viewsPath = base_path('app/Views/auth');
+        $this->viewsPath = root_path('app/Views/auth');
     }
 
     /**
@@ -34,7 +34,7 @@ class AuthView {
         $content = $this->renderPartial($template, $data);
 
         // Render layout with content
-        $layoutPath = base_path('app/Views/layouts/auth.php');
+        $layoutPath = root_path('app/Views/layouts/auth.php');
 
         if (!file_exists($layoutPath)) {
             throw new \Exception("Auth layout not found at {$layoutPath}");

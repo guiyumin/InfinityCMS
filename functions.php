@@ -209,7 +209,7 @@ function json($data, $code = 200) {
 /**
  * Get base path
  */
-function base_path($path = '') {
+function root_path($path = '') {
     return __DIR__ . '/' . ltrim($path, '/');
 }
 
@@ -217,7 +217,7 @@ function base_path($path = '') {
  * Get storage path
  */
 function storage_path($path = '') {
-    return base_path('storage/' . ltrim($path, '/'));
+    return root_path('storage/' . ltrim($path, '/'));
 }
 
 /**

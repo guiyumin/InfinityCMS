@@ -19,7 +19,7 @@ class SetupView {
      * Constructor
      */
     public function __construct() {
-        $this->viewsPath = base_path('app/Views/setup');
+        $this->viewsPath = root_path('app/Views/setup');
     }
 
     /**
@@ -34,7 +34,7 @@ class SetupView {
         $content = $this->renderPartial($template, $data);
 
         // Render layout with content
-        $layoutPath = base_path('app/Views/layouts/setup.php');
+        $layoutPath = root_path('app/Views/layouts/setup.php');
 
         if (!file_exists($layoutPath)) {
             throw new \Exception("Setup layout not found at {$layoutPath}");

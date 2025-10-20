@@ -24,7 +24,7 @@ class Migration {
      */
     public function __construct() {
         $this->db = db();
-        $this->migrationsPath = base_path('database/migrations');
+        $this->migrationsPath = root_path('database/migrations');
 
         // Ensure migrations table exists
         $this->createMigrationsTable();
