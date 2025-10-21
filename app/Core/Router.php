@@ -173,7 +173,9 @@ class Router {
      * @return void
      */
     public function dispatch() {
+        /** @var Request $request */
         $request = app('request');
+        /** @var Response $response */
         $response = app('response');
         $method = $request->method();
         $uri = $request->uri();
